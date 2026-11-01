@@ -1,0 +1,7 @@
+.update-dialog { width: min(34rem, calc(100vw - 3rem)); max-height: 80vh; overflow: auto; padding: 1.25rem; color: var(--text, #e4e7ec); background: var(--panel, #20242b); border: 1px solid #626b78; border-radius: 6px; font-size: 13px; }
+.update-dialog::backdrop { background: #0008; }
+.update-dialog h2 { font-size: 16px; margin-top: 0; }
+.update-hint { color: #b9c1cb; }
+.update-notes { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; max-height: 12rem; overflow: auto; background: #0002; padding: .65rem; }
+.update-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.update-actions button { padding: .4rem .65rem; }

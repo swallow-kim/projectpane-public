@@ -26,6 +26,7 @@ import { FavoritesContext, useFavoritesStore } from '../features/favorites/use-f
 import { FavoritesDialog } from '../features/favorites/FavoritesDialog';
 import { QuickPalette } from '../features/navigation/QuickPalette';
 import { paletteItems, type PaletteItem, type PaletteAction } from '../features/navigation/palette';
+import { UpdateControl } from '../features/updates/UpdateControl';
 
 const warningMessages = {
   state_unavailable: '창 위치를 저장할 수 없습니다.',
@@ -37,6 +38,7 @@ const warningMessages = {
 export function App({ startup }: { readonly startup: StartupConfig }) {
   const favorites = useFavoritesStore();
   const [showFavorites, setShowFavorites] = useState(false);
+  const [updatePreparing, setUpdatePreparing] = useState(false);
   const [palette, setPalette] = useState<readonly PaletteItem[] | null>(null);
   const panes = useRef<Array<PaneHandle | null>>([]);
   const active = useRef<number | null>(null);
@@ -191,10 +193,11 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
 
   return <FavoritesContext.Provider value={favorites}><main onCompositionStartCapture={() => { composing.current = true; }} onCompositionEndCapture={() => { composing.current = false; }}
     onDragOver={event => { if (event.dataTransfer.types.includes('Files')) event.preventDefault(); }} onDrop={event => event.preventDefault()}>
-    {desktop && <OperationCloseDialog />}
+    {desktop && <OperationCloseDialog updating={updatePreparing} />}
     {showFavorites && <FavoritesDialog close={() => setShowFavorites(false)} />}
     {palette && <QuickPalette items={palette} dismiss={() => setPalette(null)} run={runPalette} />}
     <header className="app-header"><h1>ProjectPane</h1>
+      {desktop && <UpdateControl ready={projects.ready} persisted={Boolean(projects.toolbar.selectedId) && !projects.toolbar.readOnly} onPreparing={setUpdatePreparing} />}
       {desktop && <OperationTray state={operations.state} unavailable={operations.error || operations.state?.closeState === 'blocked'} refresh={operations.refresh} />}
       <button className="favorites-manage" disabled={!projects.ready || projects.busy || closing} title="프로젝트·탭·즐겨찾기·최근 폴더·명령 (Ctrl+Shift+P)" onClick={openPalette}>빠른 이동</button>
       {desktop && <button className="favorites-manage" onClick={() => setShowFavorites(true)}>즐겨찾기 관리</button>}
@@ -202,6 +205,7 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
         {([1, 2, 4] as const).map(count => <button key={count} aria-pressed={layout === count} onClick={() => changeLayout(count)}>{count}패널</button>)}
       </div>
       <details className="app-help"><summary>도움말</summary><div>
+        <p>라이선스·제3자 고지와 MPL 소스 안내: 앱 실행 파일 옆 licenses 폴더. 설치형 기본 위치는 %LOCALAPPDATA%\ProjectPane\licenses입니다.</p>
         <p>Windows 복사/붙여넣기: Ctrl+C / V · 앱 안 잘라내기: Ctrl+X</p>
         <p>앱 보관 복사/붙여넣기: Ctrl+Shift+C / V · 외부 끌기: 복사만</p>
         <p>WSL·네트워크는 복사, 파일 이동은 로컬 고정 드라이브를 지원합니다. 다른 드라이브의 폴더 이동은 로컬 NTFS의 일반 폴더에 한정합니다. 휴지통은 고정 드라이브 일반 파일만 지원합니다.</p>

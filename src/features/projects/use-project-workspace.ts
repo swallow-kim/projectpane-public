@@ -16,10 +16,10 @@ export function useProjectWorkspace(startup: StartupConfig, snapshot: (root: str
   const [, render] = useState(0);
   const controller = useRef<ProjectWorkspaceController | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
-  const capture = useCallback(() => {
+  const capture = useCallback((requirePersisted = false) => {
     const current = controller.current;
     const project = current?.state.selected;
-    if (!project || current.state.readOnly) return true;
+    if (!project || current.state.readOnly) return !requirePersisted;
     try {
       const workspace = latest.current.snapshot(project.rootPath);
       if (workspace) current.changed(workspace);

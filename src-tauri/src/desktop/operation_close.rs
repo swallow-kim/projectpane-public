@@ -57,6 +57,7 @@ pub fn request_close(app: &AppHandle) {
     tauri::async_runtime::spawn(async move {
         let state = app.state::<DesktopOperations>();
         if state.shell_menu.active() {
+            let started = std::time::Instant::now();
             let _ = app.emit_to(
                 "main",
                 "projectpane-operation-close",
@@ -65,6 +66,18 @@ pub fn request_close(app: &AppHandle) {
                 },
             );
             while state.shell_menu.active() && state.closing.load(Ordering::Acquire) {
+                if super::updates::pending(&app) && started.elapsed() >= Duration::from_secs(5) {
+                    super::updates::fail_pending(&app, "shell_menu_busy");
+                    state.closing.store(false, Ordering::Release);
+                    let _ = app.emit_to(
+                        "main",
+                        "projectpane-operation-close",
+                        CloseNotice {
+                            close_state: OperationCloseState::Blocked,
+                        },
+                    );
+                    return;
+                }
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }
             if !state.closing.load(Ordering::Acquire) {
@@ -74,6 +87,11 @@ pub fn request_close(app: &AppHandle) {
         let service = match state.service().await {
             Ok(service) => service,
             Err(_) => {
+                if super::updates::pending(&app) {
+                    super::updates::fail_pending(&app, "operations_unconfirmed");
+                    state.closing.store(false, Ordering::Release);
+                    return;
+                }
                 finish(&app);
                 return;
             }
@@ -130,6 +148,7 @@ pub async fn operation_close_choice(
             service.request_close(true).await?;
         }
         CloseChoice::Continue => {
+            super::updates::cancel(window.app_handle());
             if !matches!(
                 service.state().await?.close_state,
                 OperationCloseState::Blocked | OperationCloseState::ResultsUnsaved
@@ -139,6 +158,9 @@ pub async fn operation_close_choice(
             state.closing.store(false, Ordering::Release);
         }
         CloseChoice::ExitWithoutResults => {
+            if super::updates::pending(window.app_handle()) {
+                return Err(Fault::new(FaultCode::InvalidState));
+            }
             service.acknowledge_unsaved_results().await?;
         }
     }

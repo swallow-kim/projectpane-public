@@ -2,9 +2,9 @@
 
 ProjectPane-owned code and documentation are licensed under [MIT](LICENSE). This does not change the licenses of dependencies, copied upstream material, system components, or external applications.
 
-## Current source inventory (1.2.1)
+## Current source inventory (1.3.0)
 
-The [locked dependency inventory](docs/dependency-licenses-1.2.1.md) records 88 npm dependencies and 250 Rust packages from the Windows desktop dependency graph, including build/test tools. It is not a claim that every listed package is linked into the executable. The [collected license texts](docs/third-party-license-texts.md) retain upstream notices available for the conservatively classified runtime graph. Optional npm packages for other platforms are listed even when not installed locally.
+The [locked dependency inventory](docs/dependency-licenses-1.3.0.md) records 377 npm/Rust packages from the Windows desktop dependency graph, including build/test tools. It is not a claim that every listed package is linked into the executable. The [collected license texts](docs/third-party-license-texts.md) retain upstream notices for the conservatively classified runtime graph. Optional npm packages for other platforms are listed even when not installed locally. The updater is Tauri updater 2.14.1 (Apache-2.0 OR MIT); it does not relicense the application or the TLS/signature libraries.
 
 - React, React DOM, scheduler, Zod and the Tauri API retain their upstream licenses and copyright notices.
 - Lucide uses ISC and includes Feather-derived icons under MIT. [The complete upstream notice](docs/lucide-license.txt) is preserved, including the Feather attribution. `public/lucide-license.txt` is the same text.
@@ -19,15 +19,15 @@ The graph also contains Apache-2.0, BSD, ISC, Unicode-3.0, Zlib and dual-license
 
 ## Windows packaging boundary
 
-NSIS, its compression modules and installer plug-ins have their own terms. The upstream [NSIS license page](https://nsis.sourceforge.io/License) distinguishes zlib/libpng, bzip2 and CPL components. Audit the actual pinned toolchain and embedded plug-ins for each distributed installer; the template's MIT license alone is insufficient evidence for all of them.
+NSIS 3.11 and its System, nsDialogs, StartMenu and NSISdl plug-ins retain the [NSIS COPYING](docs/licenses/NSIS-COPYING.txt) and [NSISdl notice](docs/licenses/NSISdl-License.txt). These distinguish zlib/libpng, bzip2 and CPL compression components. The corresponding unmodified NSIS source is [NSIS 3.11 source](https://sourceforge.net/projects/nsis/files/NSIS%203/3.11/nsis-3.11-src.tar.bz2/download). The additional nsis_tauri_utils 0.5.3 plug-in matches the official release SHA1 75197FEE3C6A814FE035788D1C34EAD39349B860; its [MIT notice](docs/licenses/nsis-tauri-utils-MIT.txt) is preserved. ProjectPane modifies the installer template and safety hooks; those changes are in this repository.
 
-WebView2 Runtime is not bundled in the current EXE/ZIP. It is a separately installed Microsoft component; the installer may download Microsoft's bootstrapper. The Rust bindings' MIT license does not relicense Microsoft's SDK loader libraries or runtime. Their actual redistribution terms and notices must be checked with the selected SDK/toolchain before public binary distribution. See [Microsoft's deployment guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution).
+WebView2 Runtime is not bundled. It is a separately installed Microsoft component; initial installation may download Microsoft's bootstrapper. The static x64 loader in webview2-com-sys 0.39.1 matches Microsoft.Web.WebView2 SDK 1.0.3800.47 byte-for-byte (SHA256 89C6B872783B8F6C3CEDBFF618ADB42082D455C615453AE10CFC753F1E8F25D8). Its [Microsoft license](docs/licenses/Microsoft-WebView2-SDK-LICENSE.txt) and [NOTICE](docs/licenses/Microsoft-WebView2-SDK-NOTICE.txt) are included; the Rust binding MIT does not relicense them. See [Microsoft's deployment guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution).
 
 Installed archive applications are launched externally and are not bundled or relicensed by ProjectPane.
 
-## Before publishing binaries
+## Binary distribution checks
 
-The existing v0.1.3–v1.1.0 assets were not rebuilt or changed by this license commit. In particular, their ZIP files do not include a complete dependency-notice/source-availability bundle, and their old documentation predates this MIT grant. Adding files to the source repository does not update those downloads.
+The 1.3.0 installer configuration includes the current LICENSE, this notice, dependency inventory, collected license texts and packaging-component notices under the installed `licenses` directory. Inclusion is verified against each final package; adding source notices alone does not change previously distributed binaries.
 
 - Generate notices from the exact lockfiles and packaging inputs of the release, retaining per-component copyright and any required NOTICE text.
 - Include ProjectPane LICENSE, third-party notices, applicable license texts, and exact MPL source locations in both installer and ZIP distribution.
@@ -35,4 +35,4 @@ The existing v0.1.3–v1.1.0 assets were not rebuilt or changed by this license 
 - Check that all licensed source locations remain available and that any modified covered source is supplied.
 - Inspect packaged files and the About/help access path; source-only notices are not proof of binary compliance.
 
-See [distribution requirements](docs/distribution.md) before shipping binaries. Source notices do not certify installer or SDK redistribution compliance.
+See [distribution requirements](https://github.com/swallow-kim/projectpane-public/blob/main/docs/distribution.md) before shipping binaries. Source notices do not certify installer or SDK redistribution compliance.

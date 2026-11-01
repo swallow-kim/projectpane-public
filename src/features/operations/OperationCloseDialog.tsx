@@ -6,7 +6,7 @@ import './operations.css';
 
 const afterChoice = { wait: 'waiting', cancel: 'waiting', continue: 'open', exit_without_results: 'stopping' } as const satisfies Record<CloseChoice, OperationCloseState>;
 
-export function OperationCloseDialog() {
+export function OperationCloseDialog({ updating = false }: { readonly updating?: boolean }) {
   const [state, setState] = useState<OperationCloseState>('open');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -60,7 +60,7 @@ export function OperationCloseDialog() {
     <div className="operation-dialog__actions">
       {deciding && <button disabled={busy} onClick={() => void choose('wait')}>완료까지 대기</button>}
       {(deciding || state === 'waiting') && <button disabled={busy} onClick={() => void choose('cancel')}>취소 요청 후 닫기</button>}
-      {state === 'results_unsaved' && <button disabled={busy} onClick={() => void choose('exit_without_results')}>기록 미저장 상태로 닫기</button>}
+      {state === 'results_unsaved' && !updating && <button disabled={busy} onClick={() => void choose('exit_without_results')}>기록 미저장 상태로 닫기</button>}
       <button ref={keep} disabled={busy || state === 'stopping'} onClick={() => void choose('continue')}>창 유지</button>
     </div>
   </dialog>;

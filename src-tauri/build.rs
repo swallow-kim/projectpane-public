@@ -2,6 +2,12 @@ fn main() {
     #[cfg(feature = "desktop")]
     if tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
         tauri_build::AppManifest::new().commands(&[
+            "update_status",
+            "check_update",
+            "download_update",
+            "cancel_update_download",
+            "install_update",
+            "open_update_page",
             "list_archive_tools",
             "launch_archive_tool",
             "startup_config",

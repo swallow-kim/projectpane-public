@@ -23,6 +23,16 @@ pub(crate) struct Session {
 }
 
 impl Session {
+    pub(crate) async fn stop_confirmed(&self) -> Result<(), Fault> {
+        self.cancelled.send_replace(true);
+        let mut pipes = self.pipes.lock().await;
+        if pipes.child.try_wait().map_err(Fault::from)?.is_none() {
+            pipes.child.kill().await.map_err(Fault::from)?;
+        }
+        pipes.child.wait().await.map_err(Fault::from)?;
+        Ok(())
+    }
+
     pub(crate) async fn stop(&self) {
         self.cancelled.send_replace(true);
         let mut pipes = self.pipes.lock().await;

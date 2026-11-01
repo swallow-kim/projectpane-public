@@ -7,6 +7,12 @@
     "main"
   ],
   "permissions": [
+    "allow-update-status",
+    "allow-check-update",
+    "allow-download-update",
+    "allow-cancel-update-download",
+    "allow-install-update",
+    "allow-open-update-page",
     "allow-list-archive-tools",
     "allow-launch-archive-tool",
     "allow-startup-config",

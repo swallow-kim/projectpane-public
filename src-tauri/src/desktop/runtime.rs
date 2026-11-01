@@ -125,6 +125,13 @@ impl DesktopState {
         }
     }
 
+    pub fn save_for_update(&self, window: Option<&WebviewWindow>) -> Result<(), ()> {
+        let window = window.ok_or(())?;
+        self.capture(window);
+        let bounds = self.normal.lock().map_err(|_| ())?.ok_or(())?;
+        self.store.as_ref().ok_or(())?.save(bounds).map_err(|_| ())
+    }
+
     pub fn stop(&self, window: Option<&WebviewWindow>) {
         if let Some(window) = window {
             self.capture(window);

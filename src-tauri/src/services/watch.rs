@@ -108,4 +108,13 @@ impl WatchHub {
         }
         // An in-flight exchange owns the Job, observes closed on return, and has a 2s deadline.
     }
+
+    pub async fn shutdown(&self) -> Result<(), Fault> {
+        self.closed.store(true, Ordering::Release);
+        let mut state = self.state.lock().await;
+        if let Some(session) = state.session.take() {
+            session.stop().await?;
+        }
+        Ok(())
+    }
 }

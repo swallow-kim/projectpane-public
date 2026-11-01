@@ -15,6 +15,17 @@ const request = (attempt: number) => ipc.handlers.get('projectpane-close-request
 const fail = (attempt: number) => ipc.handlers.get('projectpane-close-failed')?.({ payload: { attempt } });
 beforeEach(() => { ipc.handlers.clear(); ipc.invoke.mockClear(); });
 
+it('updater close cannot acknowledge an unpersisted workspace', async () => {
+  const capture = vi.fn((requirePersisted?: boolean) => !requirePersisted);
+  const flush = vi.fn().mockResolvedValue(true);
+  const stop = await listenForProjectClose(capture, flush, vi.fn());
+  ipc.handlers.get('projectpane-close-requested')?.({ payload: { attempt: 1, timeoutMs: 2500, forUpdate: true } });
+  await vi.waitFor(() => expect(ipc.invoke).toHaveBeenCalledExactlyOnceWith('project_close_ready', { attempt: 1, saved: false }));
+  expect(capture).toHaveBeenCalledWith(true);
+  expect(flush).not.toHaveBeenCalled();
+  stop();
+});
+
 it('a timeout invalidates a delayed successful flush; a new request can retry', async () => {
   const first = deferred<boolean>();
   const flush = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValueOnce(true);

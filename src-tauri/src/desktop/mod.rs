@@ -11,6 +11,12 @@ mod project_close_gate;
 mod projects;
 mod runtime;
 mod startup;
+mod update_handoff;
+mod update_installation;
+#[cfg(test)]
+mod update_package_tests;
+mod update_policy;
+mod updates;
 mod watch;
 
 use projectpane_core::{domain::StartupConfig, persistence::EventKind, services::Broker};
@@ -22,10 +28,17 @@ use tauri::{Manager, RunEvent, WindowEvent};
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let config = StartupConfig::from_args(std::env::args_os().skip(1));
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             focus::focus_existing(app)
         }))
         .invoke_handler(tauri::generate_handler![
+            updates::update_status,
+            updates::check_update,
+            updates::download_update,
+            updates::cancel_update_download,
+            updates::install_update,
+            updates::open_update_page,
             archive_tools::list_archive_tools,
             archive_tools::launch_archive_tool,
             commands::startup_config,
@@ -62,6 +75,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             operation_close::operation_close_choice
         ])
         .setup(move |app| {
+            app.manage(updates::DesktopUpdates::initialize(app.handle()));
             let executable =
                 std::env::current_exe().map_err(|_| io::Error::other("executable_unavailable"))?;
             let directory = executable

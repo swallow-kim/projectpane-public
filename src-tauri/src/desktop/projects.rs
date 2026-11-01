@@ -154,6 +154,7 @@ pub async fn save_project_session(
 struct CloseRequest {
     attempt: u32,
     timeout_ms: u32,
+    for_update: bool,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -176,8 +177,15 @@ fn complete_close(app: &AppHandle, attempt: u32, saved: bool) -> Result<(), Proj
         })?
         .complete(attempt, saved);
     match completion {
-        Completion::Exit => app.exit(0),
+        Completion::Exit => {
+            if super::updates::pending(app) {
+                super::updates::after_save(app);
+            } else {
+                app.exit(0);
+            }
+        }
         Completion::Keep => {
+            super::updates::fail_pending(app, "save_failed");
             eprintln!("project_close_kept_unsaved");
             let _ = app.emit_to("main", "projectpane-close-failed", CloseFailed { attempt });
         }
@@ -188,6 +196,10 @@ fn complete_close(app: &AppHandle, attempt: u32, saved: bool) -> Result<(), Proj
 
 pub fn request_close(app: &AppHandle) {
     if !super::operation_close::exit_allowed(app) {
+        return;
+    }
+    if exit_allowed(app) && !super::updates::pending(app) {
+        app.exit(0);
         return;
     }
     let state = app.state::<DesktopProjects>();
@@ -201,6 +213,7 @@ pub fn request_close(app: &AppHandle) {
             CloseRequest {
                 attempt,
                 timeout_ms: 2500,
+                for_update: super::updates::pending(app),
             },
         )
         .is_err()

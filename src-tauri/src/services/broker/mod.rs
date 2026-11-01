@@ -5,7 +5,10 @@ mod progress;
 mod view;
 use std::{
     path::PathBuf,
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
     time::Duration,
 };
 use tokio::sync::Mutex as AsyncMutex;
@@ -16,6 +19,7 @@ struct Slot {
 }
 
 pub struct Broker {
+    stopping: AtomicBool,
     executable: PathBuf,
     deadline: Duration,
     slots: Arc<Mutex<[Slot; 4]>>,
@@ -26,6 +30,7 @@ pub struct Broker {
 impl Broker {
     pub fn new(executable: PathBuf, deadline: Duration) -> Self {
         Self {
+            stopping: AtomicBool::new(false),
             executable,
             deadline,
             slots: Arc::new(Mutex::new(std::array::from_fn(|_| Slot::default()))),
@@ -52,6 +57,9 @@ impl Broker {
         let _start = self.starts[identity.pane]
             .try_lock()
             .map_err(|_| Fault::new(FaultCode::Busy))?;
+        if self.stopping.load(Ordering::Acquire) {
+            return Err(Fault::new(FaultCode::Cancelled));
+        }
         let old = {
             let mut slots = self
                 .slots
@@ -157,6 +165,33 @@ impl Broker {
                     slot.session.take();
                 }
             }
+        }
+        Ok(())
+    }
+
+    /// Permanently close admission and reap each read-only child before updater handoff.
+    pub async fn shutdown(&self) -> Result<(), Fault> {
+        self.stopping.store(true, Ordering::Release);
+        let mut starts = Vec::new();
+        for start in &self.starts {
+            starts.push(start.lock().await);
+        }
+        let sessions = self
+            .slots
+            .lock()
+            .map_err(|_| Fault::new(FaultCode::InvalidState))?
+            .iter()
+            .filter_map(|slot| slot.session.clone())
+            .collect::<Vec<_>>();
+        for session in sessions {
+            session.stop_confirmed().await?;
+        }
+        let mut slots = self
+            .slots
+            .lock()
+            .map_err(|_| Fault::new(FaultCode::InvalidState))?;
+        for slot in slots.iter_mut() {
+            slot.session.take();
         }
         Ok(())
     }
