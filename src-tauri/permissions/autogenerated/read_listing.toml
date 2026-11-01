@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-listing"
+description = "Enables the read_listing command without any pre-configured scope."
+commands.allow = ["read_listing"]
+
+[[permission]]
+identifier = "deny-read-listing"
+description = "Denies the read_listing command without any pre-configured scope."
+commands.deny = ["read_listing"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-archive-tools"
+description = "Enables the list_archive_tools command without any pre-configured scope."
+commands.allow = ["list_archive_tools"]
+
+[[permission]]
+identifier = "deny-list-archive-tools"
+description = "Denies the list_archive_tools command without any pre-configured scope."
+commands.deny = ["list_archive_tools"]

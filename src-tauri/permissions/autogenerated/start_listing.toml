@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-start-listing"
+description = "Enables the start_listing command without any pre-configured scope."
+commands.allow = ["start_listing"]
+
+[[permission]]
+identifier = "deny-start-listing"
+description = "Denies the start_listing command without any pre-configured scope."
+commands.deny = ["start_listing"]

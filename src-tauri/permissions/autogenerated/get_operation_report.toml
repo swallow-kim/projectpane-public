@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-operation-report"
+description = "Enables the get_operation_report command without any pre-configured scope."
+commands.allow = ["get_operation_report"]
+
+[[permission]]
+identifier = "deny-get-operation-report"
+description = "Denies the get_operation_report command without any pre-configured scope."
+commands.deny = ["get_operation_report"]

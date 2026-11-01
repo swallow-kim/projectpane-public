@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-poll-watch"
+description = "Enables the poll_watch command without any pre-configured scope."
+commands.allow = ["poll_watch"]
+
+[[permission]]
+identifier = "deny-poll-watch"
+description = "Denies the poll_watch command without any pre-configured scope."
+commands.deny = ["poll_watch"]

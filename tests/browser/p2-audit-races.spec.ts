@@ -1,0 +1,82 @@
+import { expect, test } from '@playwright/test';
+import { installRaceListing } from './p2-race-fixture';
+
+test('filter clearing wins over an in-flight final Ctrl+A selection page', async ({ page }, testInfo) => {
+  await installRaceListing(page);
+  const pane = page.getByRole('region', { name: '패널 1', exact: true });
+  await page.evaluate(() => {
+    window.auditHold('0:read_listing:128');
+    window.auditHold('0:set_listing_view:0');
+  });
+  await pane.getByRole('listbox').focus();
+  await page.keyboard.press('Control+a');
+  await expect.poll(() => page.evaluate(() => window.auditWaiting)).toContain('0:read_listing:128');
+  await pane.getByRole('searchbox').fill('keep');
+  await expect(pane.locator('.selection-status')).toHaveText('0개 선택');
+  await page.evaluate(() => window.auditRelease('0:read_listing:128'));
+  await expect.poll(() => page.evaluate(() => window.auditWaiting)).toContain('0:set_listing_view:0');
+  await expect(pane.locator('.selection-feedback')).toHaveCount(0);
+  await expect.soft(pane.locator('.selection-status')).toHaveText('0개 선택');
+  await page.evaluate(() => window.auditRelease('0:set_listing_view:0'));
+  await expect(pane.locator('footer [role=status]')).toContainText('조회 완료 · 96개');
+  await expect(pane.locator('.selection-status')).toHaveText('0개 선택');
+  await expect(pane.locator('[aria-selected=true][data-entry-id]')).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath('filter-cleared.png') });
+  await pane.getByRole('listbox').focus();
+  await page.keyboard.press('Control+a');
+  await expect(pane.locator('.selection-status')).toHaveText('96개 선택');
+});
+
+test('a hidden real pane restores its scroll anchor after a delayed restart', async ({ page }, testInfo) => {
+  await installRaceListing(page);
+  const pane = page.getByRole('region', { name: '패널 3', exact: true });
+  const list = pane.getByRole('listbox');
+  await list.evaluate(element => { element.scrollTop = 70 * 26 + 7; });
+  await expect(pane.locator('[data-entry-id="item-70"]')).toBeVisible();
+  await pane.locator('[data-entry-id="item-72"]').click();
+  await expect.poll(() => list.evaluate(element => element.scrollTop)).toBe((70 * 26 + 7));
+  await page.getByRole('button', { name: '1패널', exact: true }).click();
+  await expect(pane).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.auditCalls.filter(call => call.pane === 2 && call.command === 'cancel_listing').length)).toBe(1);
+  await page.evaluate(() => window.auditHold('2:start_listing:0'));
+  await page.getByRole('button', { name: '4패널', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.auditWaiting)).toContain('2:start_listing:0');
+  await expect(pane.locator('footer [role=status]')).toContainText('읽는 중');
+  await page.evaluate(() => window.auditRelease('2:start_listing:0'));
+  await expect(pane.locator('footer [role=status]')).toContainText('조회 완료 · 192개');
+  await expect.poll(() => list.evaluate(element => element.scrollTop)).toBe((70 * 26 + 7));
+  await expect(pane.locator('[data-entry-id="item-72"]')).toHaveAttribute('aria-selected', 'true');
+  await expect.poll(() => page.evaluate(() => window.auditCalls.filter(call => call.pane === 2 && call.command === 'locate_entry').map(call => call.entryId))).toContain('item-70');
+  await page.screenshot({ path: testInfo.outputPath('scroll-restored.png') });
+});
+
+test('a hidden real pane preserves its anchor after the filter race in another pane', async ({ page }) => {
+  await installRaceListing(page);
+  const first = page.getByRole('region', { name: '패널 1', exact: true });
+  await page.evaluate(() => { window.auditHold('0:read_listing:128'); window.auditHold('0:set_listing_view:0'); });
+  await first.getByRole('listbox').focus();
+  await page.keyboard.press('Control+a');
+  await expect.poll(() => page.evaluate(() => window.auditWaiting)).toContain('0:read_listing:128');
+  await first.getByRole('searchbox').fill('keep');
+  await page.evaluate(() => window.auditRelease('0:read_listing:128'));
+  await expect.poll(() => page.evaluate(() => window.auditWaiting)).toContain('0:set_listing_view:0');
+  await expect(first.locator('.selection-feedback')).toHaveCount(0);
+  await page.evaluate(() => window.auditRelease('0:set_listing_view:0'));
+  await expect(first.locator('footer [role=status]')).toContainText('조회 완료 · 96개');
+  await expect(first.locator('.selection-status')).toHaveText('0개 선택');
+  const pane = page.getByRole('region', { name: '패널 3', exact: true });
+  const list = pane.getByRole('listbox');
+  await list.evaluate(element => { element.scrollTop = (70 * 26 + 7); });
+  await expect(pane.locator('[data-entry-id="item-70"]')).toBeVisible();
+  await pane.locator('[data-entry-id="item-72"]').click();
+  expect(await list.evaluate(element => element.scrollTop)).toBe((70 * 26 + 7));
+  await page.getByRole('button', { name: '1패널', exact: true }).click();
+  await expect(pane).toBeHidden();
+  await page.evaluate(() => window.auditHold('2:start_listing:0'));
+  await page.getByRole('button', { name: '4패널', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.auditWaiting)).toContain('2:start_listing:0');
+  await page.evaluate(() => window.auditRelease('2:start_listing:0'));
+  await expect(pane.locator('footer [role=status]')).toContainText('조회 완료 · 192개');
+  await expect.poll(() => list.evaluate(element => element.scrollTop)).toBe((70 * 26 + 7));
+  await expect(pane.locator('[data-entry-id="item-72"]')).toHaveAttribute('aria-selected', 'true');
+});

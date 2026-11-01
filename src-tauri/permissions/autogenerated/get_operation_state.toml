@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-operation-state"
+description = "Enables the get_operation_state command without any pre-configured scope."
+commands.allow = ["get_operation_state"]
+
+[[permission]]
+identifier = "deny-get-operation-state"
+description = "Denies the get_operation_state command without any pre-configured scope."
+commands.deny = ["get_operation_state"]

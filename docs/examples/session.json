@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "projectId": "22222222-2222-4222-8222-222222222222",
+  "projectRevision": 1,
+  "revision": 1,
+  "workspace": {
+    "layout": 4,
+    "columns": 55,
+    "rows": 50,
+    "activePane": 0,
+    "panes": [
+      {
+        "id": "pane-source",
+        "activeTabId": "tab-source",
+        "tabs": [
+          {
+            "id": "tab-source",
+            "path": {
+              "kind": "relative",
+              "value": "src\\components"
+            },
+            "view": {
+              "sort": "name",
+              "direction": "asc",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "scroll": {
+              "entryId": null,
+              "index": 0,
+              "intraRowOffset": 0
+            }
+          },
+          {
+            "id": "tab-config",
+            "path": {
+              "kind": "relative",
+              "value": "config"
+            },
+            "view": {
+              "sort": "name",
+              "direction": "asc",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "scroll": {
+              "entryId": null,
+              "index": 0,
+              "intraRowOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "pane-design",
+        "activeTabId": "tab-design",
+        "tabs": [
+          {
+            "id": "tab-design",
+            "path": {
+              "kind": "relative",
+              "value": "design"
+            },
+            "view": {
+              "sort": "name",
+              "direction": "asc",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "scroll": {
+              "entryId": null,
+              "index": 0,
+              "intraRowOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "pane-build",
+        "activeTabId": "tab-build",
+        "tabs": [
+          {
+            "id": "tab-build",
+            "path": {
+              "kind": "relative",
+              "value": "build"
+            },
+            "view": {
+              "sort": "modified",
+              "direction": "desc",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "scroll": {
+              "entryId": null,
+              "index": 0,
+              "intraRowOffset": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "pane-docs",
+        "activeTabId": "tab-docs",
+        "tabs": [
+          {
+            "id": "tab-docs",
+            "path": {
+              "kind": "absolute",
+              "value": "D:\\SharedDocs\\Shop"
+            },
+            "view": {
+              "sort": "name",
+              "direction": "asc",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "scroll": {
+              "entryId": null,
+              "index": 0,
+              "intraRowOffset": 0
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

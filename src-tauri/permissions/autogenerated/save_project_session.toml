@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-project-session"
+description = "Enables the save_project_session command without any pre-configured scope."
+commands.allow = ["save_project_session"]
+
+[[permission]]
+identifier = "deny-save-project-session"
+description = "Denies the save_project_session command without any pre-configured scope."
+commands.deny = ["save_project_session"]

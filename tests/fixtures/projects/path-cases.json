@@ -1,0 +1,14 @@
+{
+  "absolute": [
+    {"input":"C:\\","output":"C:\\"},
+    {"input":"c:/Example/a/../b","output":"C:\\Example\\b"},
+    {"input":"\\\\server\\share\\","output":"\\\\server\\share"},
+    {"input":"//server/share/a/./b","output":"\\\\server\\share\\a\\b"},
+    {"input":"D:\\한글\\😀","output":"D:\\한글\\😀"}
+  ],
+  "invalidAbsolute":["C:relative","/root","C:\\..\\escape","\\\\server","\\\\?\\C:\\Example","\\\\.\\C:\\Example","C:\\NUL.txt","C:\\COM¹","C:\\trailing.","C:\\trailing ","C:\\a:b","C:\\a\u0000b","\\\\server\\share\\..\\escape"],
+  "relative": [
+    {"input":"","output":""},{"input":"a/../b","output":"b"},{"input":"a/./b","output":"a\\b"}
+  ],
+  "invalidRelative":["..","a\\..\\..","\\root","C:\\root","//host/share","a:b","a\\NUL","a\u0000b"]
+}

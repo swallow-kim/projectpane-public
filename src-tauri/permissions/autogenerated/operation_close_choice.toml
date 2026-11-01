@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-operation-close-choice"
+description = "Enables the operation_close_choice command without any pre-configured scope."
+commands.allow = ["operation_close_choice"]
+
+[[permission]]
+identifier = "deny-operation-close-choice"
+description = "Denies the operation_close_choice command without any pre-configured scope."
+commands.deny = ["operation_close_choice"]

@@ -1,0 +1,25 @@
+{
+  "validReply": {
+    "identity": { "pane": 0, "tabId": "pane-0-real", "requestId": "contract-1", "generation": 1 },
+    "batch": {
+      "revision": 1,
+      "offset": 0,
+      "entries": [{ "id": "w-d55cae00002e007400780074", "name": "한글.txt", "kind": "file", "modifiedAtMs": 0, "sizeBytes": 0 }],
+      "total": 1, "complete": true, "capped": false,
+      "snapshotBytes": 256, "capReason": null
+    }
+  },
+  "invalidReplyMutations": [
+    { "field": "revision", "value": -1 },
+    { "field": "revision", "value": 9007199254740992 },
+    { "field": "total", "value": -1 },
+    { "field": "total", "value": 100001 },
+    { "field": "offset", "value": 2 },
+    { "field": "offset", "value": 0.5 },
+    { "field": "snapshotBytes", "value": 33554433 },
+    { "field": "complete", "value": "true" },
+    { "field": "capReason", "value": "entry_limit" },
+    { "field": "capped", "value": true },
+    { "field": "unexpected", "value": "private-input-must-not-be-shown" }
+  ]
+}

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-activate-entry"
+description = "Enables the activate_entry command without any pre-configured scope."
+commands.allow = ["activate_entry"]
+
+[[permission]]
+identifier = "deny-activate-entry"
+description = "Denies the activate_entry command without any pre-configured scope."
+commands.deny = ["activate_entry"]

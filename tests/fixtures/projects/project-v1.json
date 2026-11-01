@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "name": "Example",
+  "preset": {
+    "layout": 4,
+    "activePane": 0,
+    "columns": 50.0,
+    "rows": 50.0,
+    "panes": [
+      {
+        "activeTabId": "tab-0",
+        "tabs": [
+          {
+            "path": {
+              "value": "",
+              "kind": "relative"
+            },
+            "view": {
+              "direction": "asc",
+              "sort": "name",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "id": "tab-0",
+            "scroll": {
+              "entryId": null,
+              "intraRowOffset": 0.0,
+              "index": 0
+            }
+          }
+        ],
+        "id": "pane-0"
+      },
+      {
+        "activeTabId": "tab-1",
+        "tabs": [
+          {
+            "path": {
+              "value": "",
+              "kind": "relative"
+            },
+            "view": {
+              "direction": "asc",
+              "sort": "name",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "id": "tab-1",
+            "scroll": {
+              "entryId": null,
+              "intraRowOffset": 0.0,
+              "index": 0
+            }
+          }
+        ],
+        "id": "pane-1"
+      },
+      {
+        "activeTabId": "tab-2",
+        "tabs": [
+          {
+            "path": {
+              "value": "",
+              "kind": "relative"
+            },
+            "view": {
+              "direction": "asc",
+              "sort": "name",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "id": "tab-2",
+            "scroll": {
+              "entryId": null,
+              "intraRowOffset": 0.0,
+              "index": 0
+            }
+          }
+        ],
+        "id": "pane-2"
+      },
+      {
+        "activeTabId": "tab-3",
+        "tabs": [
+          {
+            "path": {
+              "value": "",
+              "kind": "relative"
+            },
+            "view": {
+              "direction": "asc",
+              "sort": "name",
+              "foldersFirst": true,
+              "filter": ""
+            },
+            "id": "tab-3",
+            "scroll": {
+              "entryId": null,
+              "intraRowOffset": 0.0,
+              "index": 0
+            }
+          }
+        ],
+        "id": "pane-3"
+      }
+    ]
+  },
+  "revision": 0,
+  "rootPath": "C:\\Example",
+  "id": "project-1"
+}

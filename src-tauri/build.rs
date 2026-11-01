@@ -1,0 +1,46 @@
+fn main() {
+    #[cfg(feature = "desktop")]
+    if tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
+        tauri_build::AppManifest::new().commands(&[
+            "list_archive_tools",
+            "launch_archive_tool",
+            "startup_config",
+            "poll_watch",
+            "start_listing",
+            "read_listing",
+            "cancel_listing",
+            "set_listing_view",
+            "locate_entry",
+            "activate_entry",
+            "export_to_explorer",
+            "import_from_explorer",
+            "clipboard_sequence",
+            "list_projects",
+            "list_favorites",
+            "save_favorites",
+            "create_project",
+            "load_project",
+            "rename_project",
+            "duplicate_project",
+            "remove_project",
+            "save_project_preset",
+            "save_project_session",
+            "project_close_ready",
+            "get_operation_state",
+            "prepare_operation",
+            "capture_transfer",
+            "prepare_transfer",
+            "execute_operation",
+            "cancel_operation",
+            "discard_operation",
+            "get_operation_report",
+            "forget_operation",
+            "operation_close_choice",
+        ]),
+    ))
+    .is_err()
+    {
+        eprintln!("desktop_build_failed");
+        std::process::exit(1);
+    }
+}

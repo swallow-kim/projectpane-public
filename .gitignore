@@ -1,0 +1,39 @@
+# Build output and local tools
+/target/
+**/target/
+/node_modules/
+**/node_modules/
+/dist/
+/src-tauri/gen/
+/src-tauri/binaries/
+/artifacts/
+/test-results/
+/playwright-report/
+/coverage/
+__pycache__/
+/.idea/
+/.vscode/
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
+
+# Credentials, signing material and local settings
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+/local-data/
+/bench-data/
+
+# Commit Cargo.lock and the frontend package-manager lockfile for reproducible builds.
+
+# Private development context and unpublished evidence
+/.omo/
+/.codex/
+/.codex-remote-attachments/
+/docs/measurements/
+*.pdb

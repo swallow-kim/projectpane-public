@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-forget-operation"
+description = "Enables the forget_operation command without any pre-configured scope."
+commands.allow = ["forget_operation"]
+
+[[permission]]
+identifier = "deny-forget-operation"
+description = "Denies the forget_operation command without any pre-configured scope."
+commands.deny = ["forget_operation"]

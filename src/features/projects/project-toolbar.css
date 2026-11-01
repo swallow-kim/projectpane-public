@@ -1,0 +1,89 @@
+.project-toolbar {
+  --pt-panel: var(--surface);
+  --pt-input: var(--input-bg);
+  --pt-text: var(--text);
+  --pt-muted: var(--muted);
+  --pt-border: var(--border);
+  --pt-input-border: var(--input-border);
+  --pt-button: var(--button);
+  --pt-active: var(--active);
+  --pt-active-border: var(--accent);
+  --pt-focus: var(--accent);
+  box-sizing: border-box;
+  min-width: 0;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--pt-border);
+  border-radius: 8px;
+  color: var(--pt-text);
+  background: var(--pt-panel);
+  font: 13px "Segoe UI", "Malgun Gothic", sans-serif;
+}
+.project-toolbar *, .project-toolbar *::before, .project-toolbar *::after { box-sizing: border-box; }
+.project-toolbar__row, .project-toolbar__selection, .project-toolbar__actions,
+.project-toolbar__feedback, .project-toolbar__error, .project-toolbar__editor-heading,
+.project-toolbar__fields, .project-toolbar__editor-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.project-toolbar__row { flex-wrap: nowrap; }
+.project-toolbar__selection { flex: 1 1 220px; }
+.project-toolbar__selection > span { flex-shrink: 0; }
+.project-toolbar__selection select { flex: 1; width: 0; text-overflow: ellipsis; }
+.project-toolbar__actions { flex-direction: column; align-items: stretch; }
+.project-toolbar button, .project-toolbar input, .project-toolbar select {
+  margin: 0;
+  min-width: 0;
+  min-height: 30px;
+  font: inherit;
+  color: var(--text);
+}
+.project-toolbar button {
+  flex-shrink: 0;
+  white-space: nowrap;
+  border: 1px solid var(--pt-border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  background: var(--pt-button);
+  cursor: pointer;
+}
+.project-toolbar button:not(:disabled):hover,
+.project-toolbar button[aria-expanded="true"],
+.project-toolbar .project-toolbar__submit { background: var(--pt-active); border-color: var(--pt-active-border); }
+.project-toolbar button:disabled { opacity: .45; cursor: default; }
+.project-toolbar input, .project-toolbar select {
+  border: 1px solid var(--pt-input-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: var(--pt-input);
+}
+.project-toolbar input::placeholder { color: var(--muted); }
+.project-toolbar input:disabled, .project-toolbar select:disabled { opacity: .65; }
+.project-toolbar :is(button, input, select):focus-visible { outline: 2px solid var(--pt-focus); outline-offset: 1px; }
+.project-toolbar__feedback { flex-wrap: wrap; margin-top: 6px; color: var(--pt-muted); font-size: 12px; }
+.project-toolbar__error { flex-wrap: wrap; color: var(--pt-text); }
+.project-toolbar__error [role="alert"] { word-break: keep-all; overflow-wrap: anywhere; }
+.project-toolbar__editor {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--pt-border);
+}
+.project-toolbar__editor-heading strong { flex-shrink: 0; font-weight: 600; }
+.project-toolbar__target { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--pt-muted); }
+.project-toolbar__editor p { margin: 0; color: var(--pt-muted); font-size: 12px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+.project-toolbar__fields { flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.project-toolbar__fields label { display: flex; flex: 1 1 180px; flex-direction: column; gap: 4px; min-width: 0; color: var(--pt-muted); font-size: 12px; }
+.project-toolbar__fields .project-toolbar__root { flex-grow: 2; }
+.project-toolbar__fields input { width: 100%; font-size: 13px; }
+@media (max-width: 600px) {
+  .project-save-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .project-toolbar__fields label { flex-basis: 100%; }
+}
+.project-tabs { display: flex; flex: 1; min-width: 0; overflow-x: auto; gap: 4px; padding: 2px; scrollbar-width: thin; }
+.project-tabs [role=tab] { max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+.project-tabs [aria-selected=true] { background: var(--pt-active); border-color: var(--pt-active-border); }
+.project-empty { white-space: nowrap; color: var(--pt-muted); padding: 5px; }
+.project-save-status { color: var(--pt-muted); font-size: 11px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-manager { position: relative; flex: none; }
+.project-manager > .project-toolbar__actions { position: absolute; right: 0; top: 100%; z-index: 110; padding: 6px; background: var(--pt-panel); border: 1px solid var(--pt-border); border-radius: 6px; box-shadow: 0 8px 24px #0008; }

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-prepare-operation"
+description = "Enables the prepare_operation command without any pre-configured scope."
+commands.allow = ["prepare_operation"]
+
+[[permission]]
+identifier = "deny-prepare-operation"
+description = "Denies the prepare_operation command without any pre-configured scope."
+commands.deny = ["prepare_operation"]

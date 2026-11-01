@@ -1,0 +1,6 @@
+.file-list.marquee-list { --marquee-border: #88d5ca; --marquee-fill: #29444e66; }
+.column-heading.marquee-heading { padding-right: 20px; }
+.marquee-content { position: relative; min-height: 100%; }
+.marquee-content > .file-row { right: 12px; overflow: hidden; }
+.file-marquee { position: absolute; pointer-events: none; z-index: 1; border: 1px solid var(--marquee-border); background: var(--marquee-fill); }
+.marquee-list[data-marquee=true] { user-select: none; cursor: crosshair; }

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-listing-view"
+description = "Enables the set_listing_view command without any pre-configured scope."
+commands.allow = ["set_listing_view"]
+
+[[permission]]
+identifier = "deny-set-listing-view"
+description = "Denies the set_listing_view command without any pre-configured scope."
+commands.deny = ["set_listing_view"]
