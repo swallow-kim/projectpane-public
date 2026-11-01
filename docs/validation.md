@@ -2,7 +2,9 @@
 
 ## 1.3.0 updater 검증 (2026-11-01)
 
-1.3.0 서명 NSIS 빌드를 만들었습니다. 실제 Tauri updater 2.14.1의 검증 API로 해당 EXE의 서명을 확인했고, 변조된 바이트·서명과 다른 버전·누락된 서명·다운그레이드를 거부했습니다. 공개 feed 확인과 릴리스 게시 결과는 게시 후 확정합니다.
+1.3.0 서명 NSIS 빌드를 [정식 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.3.0)로 게시했습니다. 제품 커밋은 `c78fc9c27b07cb0545c0292ea489328e8f949c2f`이며 `v1.3.0` 태그가 이 커밋을 가리킵니다. 실제 Tauri updater 2.14.1의 검증 API로 최종 EXE의 서명을 확인했고, 변조된 바이트·서명과 다른 버전·누락된 서명·다운그레이드를 거부했습니다.
+
+게시 후 인증 없는 HTTP로 EXE·서명·버전 JSON·해시 목록을 내려받아 로컬 검증본과 바이트 단위로 비교했습니다. `releases/latest/download/latest.json`도 일치합니다. 별도 이전 버전 합성 호스트에서 실제 updater의 공개 feed 조회·다운로드·서명 검증까지 통과했으며 설치는 실행하지 않았습니다. 최종 EXE는 4,049,535바이트, SHA256은 `bec8e7f747fc9138eff70f421aca7036a054fbcfa484151f2bb79f3c39d2c237`입니다. 공개 저장소에는 Actions workflow가 없으므로 CI 통과로 표현하지 않습니다.
 
 수동 확인·다운로드·설치 분리, ZIP판 설치 차단, 실패 시 설치 비활성화, 프로젝트 저장 ACK와 종료 순서를 확인했습니다. 실제 합성 폴더와 네 개 목록 worker·watch worker를 사용한 종료 검사도 통과했습니다. NSIS의 실제 Restart Manager 검사에서는 정상 종료 인계만 파일 변경 지점에 도달하고, 일반 실행 중 대상 및 종료 시간 초과 대상은 변경 전에 차단했습니다.
 
