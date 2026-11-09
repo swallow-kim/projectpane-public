@@ -37,16 +37,16 @@ test('selection is bound to opaque entries and cancelling pending copy preparati
   await page.getByRole('button', { name: '패널 1 파일 복사', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: '파일 복사', exact: true });
   await dialog.getByRole('textbox', { name: '대상 폴더 절대 경로', exact: true }).fill('D:\\대상');
-  await page.evaluate(() => Reflect.set(window, 'p4HoldPrepare', true));
+  await page.evaluate(() => Reflect.set(window, 'p4HoldCopyCapture', true));
   await dialog.getByRole('button', { name: '복사', exact: true }).click();
   await expect(dialog).toContainText('대상 확인 중');
-  const call = await page.evaluate(() => Reflect.get(window, 'p4Calls').find((item: { command: string }) => item.command === 'prepare_operation'));
-  expect(call.args.request.action.selection.entryIds).toEqual(['entry-0']);
-  expect(call.args.request.action.selection.identity.tabId).toBeTruthy();
+  const call = await page.evaluate(() => Reflect.get(window, 'p4Calls').find((item: { command: string }) => item.command === 'append_copy_capture'));
+  expect(call.args.request.selection.entryIds).toEqual(['entry-0']);
+  expect(call.args.request.selection.identity.tabId).toBeTruthy();
   await dialog.getByRole('button', { name: '취소', exact: true }).click();
   await page.evaluate(() => Reflect.get(window, 'p4Release')());
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, 'p4Calls').filter((item: { command: string }) => item.command === 'discard_operation').length)).toBe(1);
-  expect(await page.evaluate(() => Reflect.get(window, 'p4Operations').size)).toBe(0);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, 'p4Calls').filter((item: { command: string }) => item.command === 'discard_copy_capture').length)).toBe(1);
+  expect(await page.evaluate(() => Reflect.get(window, 'p4CopyJobs').size)).toBe(0);
 });
 
 test('composition Enter cannot prepare or execute a file change', async ({ page }) => {

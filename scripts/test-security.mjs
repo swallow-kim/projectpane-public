@@ -15,8 +15,9 @@ const projectCommands = [
   'save_project_session', 'project_close_ready',
 ];
 const operationCommands = ['get_operation_state', 'prepare_operation', 'capture_transfer', 'prepare_transfer', 'execute_operation', 'cancel_operation', 'discard_operation', 'get_operation_report', 'forget_operation', 'operation_close_choice'];
+const copyCommands = ['begin_copy_capture', 'append_copy_capture', 'seal_copy_capture', 'discard_copy_capture', 'capture_copy_clipboard', 'export_copy_capture', 'begin_copy_job', 'get_copy_job', 'list_copy_jobs', 'cancel_copy_job', 'read_copy_job_outcomes'];
 const updateCommands = ['update_status', 'check_update', 'download_update', 'cancel_update_download', 'install_update', 'open_update_page'];
-const appCommands = [...p2Commands, ...projectCommands, ...operationCommands, ...updateCommands, 'poll_watch'].sort();
+const appCommands = [...p2Commands, ...projectCommands, ...operationCommands, ...copyCommands, ...updateCommands, 'poll_watch'].sort();
 const eventPermissions = ['core:event:allow-listen', 'core:event:allow-unlisten'];
 
 test('updater accepts version-bound signatures and a fixed public HTTPS feed only', () => {
@@ -164,7 +165,7 @@ test('registered IPC commands match the explicit listing, project and operation 
   const desktop = readFileSync(new URL('../src-tauri/src/desktop/mod.rs', import.meta.url), 'utf8');
   const handler = desktop.match(/tauri::generate_handler!\[([\s\S]*?)\]/);
   assert.ok(handler);
-  const registered = [...handler[1].matchAll(/(?:commands|projects|operations|operation_close|watch|explorer|archive_tools|updates)::([a-z_]+)/g)]
+  const registered = [...handler[1].matchAll(/(?:commands|projects|operations|operation_close|copy_jobs|watch|explorer|archive_tools|updates)::([a-z_]+)/g)]
     .map((match) => match[1]).sort();
   assert.deepEqual(registered, appCommands);
   const projects = readFileSync(new URL('../src-tauri/src/desktop/projects.rs', import.meta.url), 'utf8');

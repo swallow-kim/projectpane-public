@@ -16,11 +16,11 @@ test('ordinary copy and paste use Windows while explicit app storage stays separ
   await list(page).press('Control+Shift+c');
   await expect(page.locator('.transfer-status')).toContainText('복사 1개 담음');
   await list(page).press('Control+v');
-  await expect.poll(async () => calls(page, 'execute_operation')).toHaveLength(1);
+  await expect.poll(async () => calls(page, 'begin_copy_job')).toHaveLength(1);
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  expect(await calls(page, 'import_from_explorer')).toHaveLength(1);
-  expect(await calls(page, 'prepare_transfer')).toHaveLength(1);
-  expect(await calls(page, 'execute_operation')).toHaveLength(1);
+  expect(await calls(page, 'capture_copy_clipboard')).toHaveLength(1);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(1);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(1);
 });
 
 test('changed Windows clipboard cancels a pending internal cut before showing a move', async ({ page }) => {
@@ -30,12 +30,12 @@ test('changed Windows clipboard cancels a pending internal cut before showing a 
   await list(page).press('Control+v');
   await expect(page.getByRole('alert')).toContainText('앱 잘라내기를 취소했습니다');
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  expect(await calls(page, 'import_from_explorer')).toHaveLength(0);
-  expect(await calls(page, 'execute_operation')).toHaveLength(0);
+  expect(await calls(page, 'capture_copy_clipboard')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(0);
   await list(page).press('Control+v');
-  await expect.poll(async () => calls(page, 'execute_operation')).toHaveLength(1);
+  await expect.poll(async () => calls(page, 'begin_copy_job')).toHaveLength(1);
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  expect(await calls(page, 'import_from_explorer')).toHaveLength(1);
+  expect(await calls(page, 'capture_copy_clipboard')).toHaveLength(1);
 });
 
 test('a clipboard change during source capture cannot leave a usable cut token', async ({ page }) => {
@@ -46,7 +46,7 @@ test('a clipboard change during source capture cannot leave a usable cut token',
   await expect(page.getByRole('alert')).toContainText('앱 잘라내기를 취소했습니다');
   await expect(page.locator('.transfer-status')).not.toContainText('개 담음');
   await expect(page.getByRole('button', { name: '앱에 붙여넣기', exact: true }).first()).toBeDisabled();
-  expect(await calls(page, 'execute_operation')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(0);
 });
 
 test('Windows copy supersedes a local cut and inaccessible change counters fail closed', async ({ page }) => {
@@ -55,10 +55,10 @@ test('Windows copy supersedes a local cut and inaccessible change counters fail 
   await list(page).press('Control+c');
   await expect(page.locator('.transfer-status')).toContainText('Windows에 복사했습니다');
   await expect(page.getByRole('button', { name: '앱에 붙여넣기', exact: true }).first()).toBeDisabled();
-  expect(await calls(page, 'export_to_explorer')).toHaveLength(1);
+  expect(await calls(page, 'export_copy_capture')).toHaveLength(1);
   await page.evaluate(() => Reflect.set(window, 'p4ClipboardSequence', 0));
   await list(page).press('Control+x');
   await expect(page.getByRole('alert')).toBeVisible();
   expect(await calls(page, 'capture_transfer')).toHaveLength(1);
-  expect(await calls(page, 'execute_operation')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(0);
 });

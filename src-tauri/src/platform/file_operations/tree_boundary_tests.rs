@@ -129,7 +129,7 @@ fn tree_copy_refuses_junction_escape_and_preserves_outside_sentinel() {
     );
     assert_eq!(
         copy_plan(&[&folder], &target).unwrap_err().code,
-        FaultCode::InvalidPath
+        FaultCode::UnsafeReparsePoint
     );
     assert_eq!(
         capture_source(outside.join("sentinel").to_str().unwrap()).unwrap(),

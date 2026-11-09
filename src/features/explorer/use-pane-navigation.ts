@@ -39,13 +39,15 @@ export function usePaneNavigation(pane: number, initialPath: string | undefined,
     listing.stop();
     update(value => navigateTab(value, nextPath));
   };
+  const viewRequest = useRef(0);
   const changeView = (next: TabView) => {
+    const request = ++viewRequest.current;
     update(value => ({ ...(value.view.filter !== next.filter ? rememberPosition(value, emptyPosition()) : value), view: next }));
     if (!desktop || source !== 'real' || !visible || !path) return;
     setActionError(null);
     void listing.setView(next).catch((error: unknown) => {
       const code = toFaultCode(error);
-      if (code !== 'cancelled' && code !== 'stale_request' && generation.current === epoch && current.current.tab.id === id && currentLocation(current.current.tab).path === path && current.current.visible) setActionError(code);
+      if (code !== 'cancelled' && code !== 'stale_request' && request === viewRequest.current && generation.current === epoch && current.current.tab.id === id && currentLocation(current.current.tab).path === path && current.current.visible) setActionError(code);
     });
   };
   const activate = (entryId: string) => {

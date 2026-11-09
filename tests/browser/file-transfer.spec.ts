@@ -22,18 +22,18 @@ test('copy remains available after navigation and submits once to the current de
   await expect(list(page)).toHaveAttribute('aria-busy', 'false');
   await list(page).press('Control+Shift+v');
   const dialog = page.getByRole('dialog', { name: '파일 복사', exact: true });
-  await expect.poll(async () => calls(page, 'execute_operation')).toHaveLength(1);
+  await expect.poll(async () => calls(page, 'begin_copy_job')).toHaveLength(1);
   await expect(dialog).not.toBeVisible();
-  expect((await calls(page, 'prepare_transfer'))[0].args).toMatchObject({ request: { destination: 'C:\\Destination' } });
+  expect((await calls(page, 'begin_copy_job'))[0].args).toMatchObject({ request: { destination: 'C:\\Destination' } });
   await page.screenshot({ path: info.outputPath('internal-copy-preview.png') });
-  expect(await calls(page, 'prepare_transfer')).toHaveLength(1);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(1);
   expect(await calls(page, 'prepare_operation')).toHaveLength(0);
   await expect(dialog).not.toBeVisible();
-  await expect(page.locator('.transfer-status')).toContainText('복사 요청을 접수했습니다');
+  await expect(page.locator('.transfer-status')).toContainText('복사 작업');
   await expect(page.getByRole('button', { name: '앱에 붙여넣기', exact: true }).first()).toBeEnabled();
   await page.reload();
   await expect(page.locator('.transfer-status')).not.toContainText('담음');
-  expect(await calls(page, 'execute_operation')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(0);
 });
 
 test('cut can discard a preview, then is consumed after one explicit submission', async ({ page }) => {
@@ -54,9 +54,9 @@ test('cut can discard a preview, then is consumed after one explicit submission'
   await expect(page.locator('.transfer-status')).not.toContainText('담음');
   await list(page, 2).press('Control+v');
   await expect(dialog).not.toBeVisible();
-  await expect.poll(async () => calls(page, 'execute_operation')).toHaveLength(2);
+  await expect.poll(async () => calls(page, 'begin_copy_job')).toHaveLength(1);
   await expect(page.getByRole('dialog', { name: '파일 복사', exact: true })).not.toBeVisible();
-  expect(await calls(page, 'import_from_explorer')).toHaveLength(1);
+  expect(await calls(page, 'capture_copy_clipboard')).toHaveLength(1);
 });
 
 test('text fields and composition echoes never invoke clipboard file operations', async ({ page }) => {
@@ -73,9 +73,9 @@ test('text fields and composition echoes never invoke clipboard file operations'
     await files.dispatchEvent('keydown', { key, code, ctrlKey: true, repeat: true });
   }
   expect(await calls(page, 'capture_transfer')).toHaveLength(0);
-  expect(await calls(page, 'prepare_transfer')).toHaveLength(0);
-  expect(await calls(page, 'export_to_explorer')).toHaveLength(0);
-  expect(await calls(page, 'import_from_explorer')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(0);
+  expect(await calls(page, 'export_copy_capture')).toHaveLength(0);
+  expect(await calls(page, 'capture_copy_clipboard')).toHaveLength(0);
   await files.press('Control+Shift+c');
   await expect(page.locator('.transfer-status')).toContainText('복사 1개 담음');
 });
@@ -88,7 +88,7 @@ test('stale captured originals fail nonmodally without submitting', async ({ pag
   const dialog = page.getByRole('dialog', { name: '파일 복사', exact: true });
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole('alert')).toContainText('선택한 항목이 바뀌었습니다');
-  expect(await calls(page, 'execute_operation')).toHaveLength(0);
+  expect(await page.evaluate(() => Reflect.get(window, 'p4CopyJobs').size)).toBe(0);
 });
 
 test('internal panel drag copies and an unrelated external payload is ignored', async ({ page }, info) => {
@@ -100,13 +100,13 @@ test('internal panel drag copies and an unrelated external payload is ignored', 
   await expect(destination).toHaveAttribute('aria-busy', 'false');
   const foreign = await page.evaluateHandle(() => { const data = new DataTransfer(); data.setData('application/x-projectpane-transfer', 'untrusted'); data.setData('text/plain', 'C:\\private'); return data; });
   await destination.dispatchEvent('drop', { dataTransfer: foreign });
-  expect(await calls(page, 'capture_transfer')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_capture')).toHaveLength(0);
   await source.dragTo(destination);
   const dialog = page.getByRole('dialog', { name: '파일 복사', exact: true });
-  await expect.poll(async () => calls(page, 'execute_operation')).toHaveLength(1);
+  await expect.poll(async () => calls(page, 'begin_copy_job')).toHaveLength(1);
   await expect(dialog).not.toBeVisible();
-  expect((await calls(page, 'prepare_transfer'))[0].args).toMatchObject({ request: { destination: 'C:\\DropTarget' } });
-  expect(await calls(page, 'capture_transfer')).toHaveLength(1);
+  expect((await calls(page, 'begin_copy_job'))[0].args).toMatchObject({ request: { destination: 'C:\\DropTarget' } });
+  expect(await calls(page, 'begin_copy_capture')).toHaveLength(1);
   await page.screenshot({ path: info.outputPath('internal-panel-drop.png') });
 });
 

@@ -95,10 +95,10 @@ test('copy favorite selects a destination without submitting until the single Co
   const dialog = page.getByRole('dialog', { name: '파일 복사', exact: true });
   await dialog.getByLabel('즐겨찾는 대상 폴더').selectOption('C:\\Temporary');
   await expect(dialog.getByRole('textbox')).toHaveValue('C:\\Temporary');
-  expect(await page.evaluate(() => Reflect.get(window, 'p4Operations').size)).toBe(0);
+  expect(await page.evaluate(() => Reflect.get(window, 'p4CopyJobs').size)).toBe(0);
   await dialog.getByRole('button', { name: '복사', exact: true }).click();
   await expect(dialog).not.toBeVisible();
-  expect(await page.evaluate(() => Reflect.get(window, 'p4Operations').size)).toBe(1);
+  expect(await page.evaluate(() => Reflect.get(window, 'p4CopyJobs').size)).toBe(1);
 });
 
 test('pending favorite save is awaited before the normal close acknowledgement', async ({ page }) => {

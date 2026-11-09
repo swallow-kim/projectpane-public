@@ -20,7 +20,7 @@ pub fn capture_source(path: &str) -> Result<OperationSource, Fault> {
     for ancestor in Path::new(&normalized).ancestors() {
         let metadata = fs::symlink_metadata(ancestor).map_err(Fault::from)?;
         if metadata.file_attributes() & 0x400 != 0 || metadata.file_type().is_symlink() {
-            return Err(Fault::new(FaultCode::InvalidPath));
+            return Err(Fault::new(FaultCode::UnsafeReparsePoint));
         }
     }
     let file = OpenOptions::new()
@@ -47,14 +47,17 @@ pub fn capture_source(path: &str) -> Result<OperationSource, Fault> {
     if read == 0 || length == 0 {
         return Err(Fault::from(std::io::Error::last_os_error()));
     }
-    if length as usize >= path_buffer.len() || info.dwFileAttributes & 0x400 != 0 {
+    if info.dwFileAttributes & 0x400 != 0 {
+        return Err(Fault::new(FaultCode::UnsafeReparsePoint));
+    }
+    if length as usize >= path_buffer.len() {
         return Err(Fault::new(FaultCode::InvalidPath));
     }
     let canonical = String::from_utf16(&path_buffer[..length as usize])
         .map_err(|_| Fault::new(FaultCode::InvalidPath))?;
     let canonical = canonical_path(&canonical)?;
     if info.nFileIndexHigh == 0 && info.nFileIndexLow == 0 {
-        return Err(Fault::new(FaultCode::InvalidPath));
+        return Err(Fault::new(FaultCode::UnsupportedProvider));
     }
     let kind = if info.dwFileAttributes & 0x10 != 0 {
         EntryKind::Folder

@@ -102,6 +102,9 @@ export async function forgetFileAction(id: string): Promise<void> {
 }
 export function operationError(error: unknown, kind?: FileActionKind | 'copy_as' | 'copy_skip_existing'): string {
   switch (toFaultCode(error)) {
+    case 'destination_streams_unsupported': return '대상 저장소는 이 항목의 추가 데이터 스트림(ADS)을 보존할 수 없어 복사를 중단했습니다. 해당 항목은 새로 만들지 않았습니다. ADS를 지원하는 대상 저장소를 선택하세요.';
+    case 'unsupported_provider': return '이 저장소는 안전한 복사에 필요한 파일 식별 또는 생성 기능을 지원하지 않습니다. 원본과 대상 저장소를 확인하세요.';
+    case 'unsafe_reparse_point': return '선택한 항목이나 상위 경로에 심볼릭 링크 또는 재분석 지점이 있어 처리하지 않았습니다. 링크를 따라가지 않습니다. 링크가 없는 실제 원본 경로와 대상 폴더를 직접 선택하세요.';
     case 'destination_exists': return '대상에 같은 이름의 항목이 있습니다. 기존 항목은 변경하지 않았습니다. 건너뛰기 또는 다른 이름으로 복사를 선택할 수 있습니다.';
     case 'busy': return '대상 이름이 이미 있거나 다른 작업을 처리 중입니다. 경로와 작업 상태를 확인하세요.';
     case 'stale_request': return '선택한 항목이 바뀌었습니다. 목록을 새로 고친 뒤 다시 선택하세요.';

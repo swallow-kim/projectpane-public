@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-export-copy-capture"
+description = "Enables the export_copy_capture command without any pre-configured scope."
+commands.allow = ["export_copy_capture"]
+
+[[permission]]
+identifier = "deny-export-copy-capture"
+description = "Denies the export_copy_capture command without any pre-configured scope."
+commands.deny = ["export_copy_capture"]

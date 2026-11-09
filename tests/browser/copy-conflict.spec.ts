@@ -17,10 +17,11 @@ for (const option of ['skip', 'name'] as const) test(`paste collision offers ${o
   await dialog.getByRole('button', { name: '복사', exact: true }).click();
   await expect(dialog).toHaveCount(0);
   const calls = await page.evaluate(() => Reflect.get(window, 'p4Calls'));
-  expect(calls.filter((x: { command: string }) => x.command === 'execute_operation')).toHaveLength(1);
-  expect(calls.filter((x: { command: string }) => x.command === 'import_from_explorer')).toHaveLength(1);
-  const request = calls.filter((x: { command: string }) => x.command === 'prepare_transfer').at(-1).args.request;
-  expect(option === 'skip' ? request.skipExisting : request.copyName).toBe(option === 'skip' ? true : '새 이름.txt');
+  expect(calls.filter((x: { command: string }) => x.command === 'begin_copy_job')).toHaveLength(2);
+  expect(await page.evaluate(() => Reflect.get(window, 'p4CopyJobs').size)).toBe(1);
+  expect(calls.filter((x: { command: string }) => x.command === 'capture_copy_clipboard')).toHaveLength(1);
+  const request = calls.filter((x: { command: string }) => x.command === 'begin_copy_job').at(-1).args.request;
+  expect(option === 'skip' ? request.conflictPolicy : request.name).toBe(option === 'skip' ? 'skip' : '새 이름.txt');
 });
 
 test('queue busy is not misidentified as a destination collision', async ({ page }) => {
@@ -30,5 +31,5 @@ test('queue busy is not misidentified as a destination collision', async ({ page
   await page.getByRole('listbox', { name: '패널 1 파일 목록' }).press('Control+v');
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  expect(await page.evaluate(() => Reflect.get(window, 'p4Calls').filter((x: { command: string }) => x.command === 'execute_operation'))).toHaveLength(0);
+  expect(await page.evaluate(() => Reflect.get(window, 'p4CopyJobs').size)).toBe(0);
 });

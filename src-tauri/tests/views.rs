@@ -242,3 +242,53 @@ async fn native_worker_commands_reject_stale_unknown_and_removed_activation() {
     );
     broker.cancel(&replacement).await.unwrap();
 }
+#[tokio::test]
+async fn activation_batch_wire_preserves_order_and_rejects_stale_generation() {
+    let root = tempfile::tempdir().unwrap();
+    for name in ["a.txt", "b.txt"] {
+        fs::write(root.path().join(name), b"synthetic").unwrap();
+    }
+    let broker = Broker::new(
+        env!("CARGO_BIN_EXE_projectpane-read-worker").into(),
+        Duration::from_secs(8),
+    );
+    let id = Identity {
+        pane: 0,
+        tab_id: "batch-tab".into(),
+        request_id: "batch-request".into(),
+        generation: 1,
+    };
+    let first = broker
+        .start(id.clone(), root.path().to_str().unwrap().into())
+        .await
+        .unwrap();
+    let ids: Vec<_> = first
+        .batch
+        .entries
+        .iter()
+        .rev()
+        .map(|e| e.id.clone())
+        .collect();
+    let targets = broker.resolve_activations(&id, ids.clone()).await.unwrap();
+    assert!(targets[0].path.ends_with("b.txt"));
+    assert!(targets[1].path.ends_with("a.txt"));
+    assert_eq!(
+        broker
+            .resolve_activations(&id, vec![ids[0].clone(); MAX_ACTIVATION_BATCH + 1])
+            .await
+            .unwrap_err()
+            .code,
+        FaultCode::InvalidRequest
+    );
+    let mut next = id.clone();
+    next.generation += 1;
+    broker
+        .start(next.clone(), root.path().to_str().unwrap().into())
+        .await
+        .unwrap();
+    assert_eq!(
+        broker.resolve_activations(&id, ids).await.unwrap_err().code,
+        FaultCode::StaleRequest
+    );
+    broker.cancel(&next).await.unwrap();
+}

@@ -64,7 +64,7 @@ impl Listing {
                 }
                 self.batch(0, BATCH_SIZE)
             }
-            Request::Locate { .. } | Request::Activate { .. } => {
+            Request::Locate { .. } | Request::Activate { .. } | Request::ActivateMany { .. } => {
                 Err(Fault::new(FaultCode::InvalidRequest))
             }
             Request::Window { offset, limit } => {

@@ -50,10 +50,10 @@ test('dragging an unselected row selects that source and highlights the copy des
   await expect(list(page, 2)).toHaveAttribute('data-drop-effect', 'copy');
   await expect(page.locator('.file-drop-hint')).toHaveText('놓으면 여기에 복사합니다');
   await page.locator('body').dispatchEvent('pointerup', { button: 0, buttons: 0, pointerId: 31, clientX: b.x + 40, clientY: b.y + 40 });
-  await expect.poll(async () => calls(page, 'execute_operation')).toHaveLength(1);
+  await expect.poll(async () => calls(page, 'begin_copy_job')).toHaveLength(1);
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  expect((await calls(page, 'capture_transfer'))[0].args.request).toMatchObject({ mode: 'copy', selection: { entryIds: ['entry-1'] } });
-  expect(await calls(page, 'execute_operation')).toHaveLength(1);
+  expect((await calls(page, 'append_copy_capture'))[0].args.request).toMatchObject({ selection: { entryIds: ['entry-1'] } });
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(1);
   await expect(page.locator('.file-drop-hint')).toHaveCount(0);
 });
 
@@ -63,7 +63,7 @@ test('native drag hover and leave change no files and cannot target a toolbar', 
     Reflect.get(window, 'p3Emit')('tauri://drag-enter', { paths: ['C:\\External\\synthetic.txt'], position: { x: (r.x + 30) * devicePixelRatio, y: (r.y + 30) * devicePixelRatio } });
   });
   await expect(list(page)).toHaveAttribute('data-drop-effect', 'copy');
-  expect(await calls(page, 'import_from_explorer')).toHaveLength(0);
+  expect(await calls(page, 'capture_copy_clipboard')).toHaveLength(0);
   await page.evaluate(() => Reflect.get(window, 'p3Emit')('tauri://drag-over', { position: { x: 1, y: 1 } }));
   await expect(page.locator('.file-drop-hint')).toHaveCount(0);
   await list(page).evaluate(element => {
@@ -74,7 +74,7 @@ test('native drag hover and leave change no files and cannot target a toolbar', 
   await page.evaluate(() => Reflect.get(window, 'p3Emit')('tauri://drag-leave', {}));
   await expect(page.locator('.file-drop-hint')).toHaveCount(0);
   await expect(list(page)).not.toHaveAttribute('data-drop-effect');
-  expect(await calls(page, 'execute_operation')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(0);
 });
 
 test('pointer cancellation clears the target and a released pointer cannot start Shell dragging', async ({ page }) => {
@@ -87,8 +87,8 @@ test('pointer cancellation clears the target and a released pointer cannot start
   await expect(page.locator('.file-drop-hint')).toBeVisible();
   await source.dispatchEvent('pointerout', { buttons: 0, pointerId: 32, relatedTarget: null });
   await expect(page.locator('.file-drop-hint')).toHaveCount(0);
-  expect(await calls(page, 'export_to_explorer')).toHaveLength(0);
-  expect(await calls(page, 'capture_transfer')).toHaveLength(0);
+  expect(await calls(page, 'export_copy_capture')).toHaveLength(0);
+  expect(await calls(page, 'append_copy_capture')).toHaveLength(0);
 });
 
 test('Escape clears an internal cut without reading or changing the Windows clipboard', async ({ page }) => {
@@ -97,7 +97,7 @@ test('Escape clears an internal cut without reading or changing the Windows clip
   await list(page).press('Escape');
   await expect(page.locator('.transfer-status')).toContainText('앱 보관을 비웠습니다');
   await expect(page.getByRole('button', { name: '앱에 붙여넣기', exact: true }).first()).toBeDisabled();
-  expect(await calls(page, 'export_to_explorer')).toHaveLength(0);
-  expect(await calls(page, 'import_from_explorer')).toHaveLength(0);
-  expect(await calls(page, 'execute_operation')).toHaveLength(0);
+  expect(await calls(page, 'export_copy_capture')).toHaveLength(0);
+  expect(await calls(page, 'capture_copy_clipboard')).toHaveLength(0);
+  expect(await calls(page, 'begin_copy_job')).toHaveLength(0);
 });

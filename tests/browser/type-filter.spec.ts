@@ -141,3 +141,13 @@ test('rapid typing then Escape cannot let an older pending filter replace the cl
   await expect(list(page).getByRole('option').first()).toHaveAttribute('aria-setsize', '140');
   expect(await page.evaluate(() => Reflect.get(window, 'filterCalls').map((c: { filter: string }) => c.filter))).toEqual(['b', '']);
 });
+
+test('rapid filter input is immediate but sends only the latest coalesced query', async ({ page }) => {
+  await fixture(page);
+  await filter(page).focus();
+  await page.keyboard.type('Bravo', { delay: 0 });
+  await expect(filter(page)).toHaveValue('Bravo');
+  await expect(list(page).getByRole('option')).toHaveCount(1);
+  expect(await page.evaluate(() => Reflect.get(window, 'filterCalls').map((call: { filter: string }) => call.filter))).toEqual(['Bravo']);
+  await expect(filter(page)).toBeFocused();
+});

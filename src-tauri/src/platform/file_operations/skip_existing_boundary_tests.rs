@@ -211,5 +211,8 @@ fn skip_existing_refuses_reparse_destination_without_following_it() {
     assert!(output.status.success(), "{output:?}");
     let mut fixture = fixture;
     fixture.destination = link;
-    assert_eq!(fixture.plan().unwrap_err().code, FaultCode::InvalidPath);
+    assert_eq!(
+        fixture.plan().unwrap_err().code,
+        FaultCode::UnsafeReparsePoint
+    );
 }

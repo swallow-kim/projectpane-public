@@ -6,6 +6,9 @@ use std::io;
 pub enum FaultCode {
     InvalidRequest,
     InvalidPath,
+    UnsupportedProvider,
+    DestinationStreamsUnsupported,
+    UnsafeReparsePoint,
     InvalidState,
     NotFound,
     AccessDenied,
@@ -26,6 +29,9 @@ impl FaultCode {
         match self {
             Self::InvalidRequest => "invalid_request",
             Self::InvalidPath => "invalid_path",
+            Self::UnsupportedProvider => "unsupported_provider",
+            Self::DestinationStreamsUnsupported => "destination_streams_unsupported",
+            Self::UnsafeReparsePoint => "unsafe_reparse_point",
             Self::InvalidState => "invalid_state",
             Self::NotFound => "not_found",
             Self::AccessDenied => "access_denied",
@@ -62,5 +68,24 @@ impl From<io::Error> for Fault {
             io::ErrorKind::PermissionDenied => FaultCode::AccessDenied,
             _ => FaultCode::IoError,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn preservation_faults_round_trip_without_changing_fault_shape() {
+        for code in [
+            FaultCode::DestinationStreamsUnsupported,
+            FaultCode::UnsafeReparsePoint,
+            FaultCode::UnsupportedProvider,
+        ] {
+            let fault = Fault::new(code);
+            let json = serde_json::json!({ "code": code.as_str() });
+            assert_eq!(serde_json::to_value(&fault).unwrap(), json);
+            assert_eq!(serde_json::from_value::<Fault>(json).unwrap(), fault);
+        }
     }
 }

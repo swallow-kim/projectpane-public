@@ -1,3 +1,5 @@
+import { toFaultCode } from '../../shared/fault';
+import { beginCopyJob, discardCopyCapture, stageCopy } from './copy-job-client';
 import { useEffect, useId, useRef, useState } from 'react';
 import { fileActionText, type FileActionDraft, type OperationPreview } from '../../shared/operations';
 import { discardFileAction, executeFileAction, operationError, prepareFileAction, listArchiveTools, launchArchiveTool, type ArchiveTool } from './operation-client';
@@ -51,21 +53,34 @@ export function FileActionDialog({ draft, projectId, close, submitted }: { reado
         setBusy(false); return;
       }
       if (builtinUnavailable) { setError('이 형식은 설치된 압축 앱에서 열어 압축을 해제하세요. Windows 기본 기능은 ZIP만 지원합니다.'); setBusy(false); return; }
+      if (draft.kind === 'copy') {
+        const capture = draft.selection ? await stageCopy(draft.selection, () => epoch === generation.current) : null;
+        const captureId = capture?.id ?? draft.transfer?.token;
+        if (!captureId) throw new Error('Missing copy source');
+        try {
+          if (epoch !== generation.current) return;
+          sending.current = true;
+          await beginCopyJob(captureId, value, projectId, copyWithName ? copyName : undefined, skipExisting);
+          if (epoch === generation.current) { submitted(); close(); }
+        } finally { if (capture) await discardCopyCapture(capture.id).catch(() => {}); }
+        return;
+      }
       const result = await prepareFileAction(draft, rename ? finalName : value, projectId, copyWithName ? copyName : undefined, skipExisting);
       if (epoch !== generation.current) { await discardFileAction(result.id); return; }
       prepared.current = result.id;
-      if (archive || draft.kind === 'copy' || (rename && !extensionChanged)) {
+      if (archive || (rename && !extensionChanged)) {
         sending.current = true;
         await executeFileAction(result.id);
         prepared.current = null; submitted(); close();
       } else setPreview(result);
     } catch (error) {
+      if (draft.kind === 'copy' && !['ipc_error', 'io_error', 'protocol_error', 'timeout'].includes(toFaultCode(error))) sending.current = false;
       if (epoch === generation.current) {
         if (sending.current) {
           // An accepted operation may have lost its reply. Never prepare a
           // second copy or discard the uncertain operation on dialog close.
           prepared.current = null; setUncertain(true); submitted();
-          setError('복사 접수 상태를 확인하지 못했습니다. 상단 파일 작업 버튼을 확인하세요. 자동으로 다시 실행하지 않습니다.');
+          setError(draft.kind === 'copy' ? '복사 실행 상태를 확인하지 못했습니다. 복사 작업에서 결과를 확인하세요. 자동으로 다시 실행하지 않습니다.' : '복사 접수 상태를 확인하지 못했습니다. 상단 파일 작업 버튼을 확인하세요. 자동으로 다시 실행하지 않습니다.');
         } else setError(operationError(error, skipExisting ? 'copy_skip_existing' : copyWithName ? 'copy_as' : draft.kind));
       }
     } finally { sending.current = false; if (epoch === generation.current) setBusy(false); }

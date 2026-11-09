@@ -42,6 +42,7 @@ export async function installProjects(page: Page, ephemeral = false, readOnly = 
         calls.push({ command, args: structuredClone(args) });
         const request = args?.request;
         if (command === 'plugin:event|listen' && args.event && args.handler !== undefined) { listeners.set(args.event, args.handler); return args.handler; }
+        if (command === 'list_copy_jobs') return [];
         if (command === 'get_operation_state') return { operations: [], closeState: operationClose, available: operationClose === 'open', progress: null };
         if (command === 'operation_close_choice') { operationClose = args.choice === 'continue' ? 'open' : args.choice === 'exit_without_results' ? 'stopping' : 'waiting'; await closeReply; return; }
         if (command === 'project_close_ready') { if (!args.saved) emit('projectpane-close-failed', { attempt: args.attempt }); return; }

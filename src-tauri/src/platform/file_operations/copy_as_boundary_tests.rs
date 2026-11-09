@@ -65,13 +65,13 @@ fn copy_as_native_capture_refuses_junction_sources_and_destinations() {
         named_plan(&junction.join("source"), fixture.path(), "target")
             .unwrap_err()
             .code,
-        FaultCode::InvalidPath
+        FaultCode::UnsafeReparsePoint
     );
     assert_eq!(
         named_plan(&outside.join("source"), &junction, "target")
             .unwrap_err()
             .code,
-        FaultCode::InvalidPath
+        FaultCode::UnsafeReparsePoint
     );
     assert_eq!(fs::read(outside.join("source")).unwrap(), b"source");
     assert!(!outside.join("target").exists());

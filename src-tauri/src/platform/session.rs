@@ -50,7 +50,7 @@ impl Session {
                 identity: self.identity.clone(),
                 batch,
             }),
-            WorkerResponse::Located(_) | WorkerResponse::Target(_) => {
+            WorkerResponse::Located(_) | WorkerResponse::Target(_) | WorkerResponse::Targets(_) => {
                 Err(Fault::new(FaultCode::ProtocolError))
             }
         }

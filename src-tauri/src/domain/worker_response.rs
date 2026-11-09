@@ -7,6 +7,7 @@ pub enum WorkerResponse {
     Batch(Batch),
     Located(LocatedEntry),
     Target(ActivationTarget),
+    Targets(Vec<ActivationTarget>),
 }
 
 impl WorkerResponse {
@@ -22,6 +23,16 @@ impl WorkerResponse {
             }
             (Self::Target(target), Request::Activate { .. }) => {
                 AbsolutePath::new(target.path.clone()).map(|_| ())
+            }
+            (Self::Targets(targets), Request::ActivateMany { entry_ids })
+                if !entry_ids.is_empty()
+                    && entry_ids.len() <= MAX_ACTIVATION_BATCH
+                    && targets.len() == entry_ids.len() =>
+            {
+                for target in targets {
+                    AbsolutePath::new(target.path.clone())?;
+                }
+                Ok(())
             }
             _ => Err(Fault::new(FaultCode::ProtocolError)),
         }

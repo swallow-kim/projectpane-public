@@ -2,6 +2,7 @@ use super::{Fault, FaultCode, ListingView, MAX_ENTRY_ID};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
+pub const MAX_ACTIVATION_BATCH: usize = 128;
 pub const BATCH_SIZE: usize = 256;
 pub const DISPLAY_PAGE_SIZE: usize = 64;
 pub const MAX_ENTRY_WIRE_BYTES: usize = (MAX_FRAME - 4096) / DISPLAY_PAGE_SIZE;
@@ -88,7 +89,9 @@ impl Batch {
         };
         let matches_request = match request {
             Request::Open { .. } | Request::SetView { .. } => self.offset == 0,
-            Request::Locate { .. } | Request::Activate { .. } => false,
+            Request::Locate { .. } | Request::Activate { .. } | Request::ActivateMany { .. } => {
+                false
+            }
             Request::Advance => true,
             Request::Progress => self.entries.is_empty(),
             Request::Window { offset, limit } => {
@@ -147,6 +150,10 @@ pub enum Request {
     Activate {
         #[serde(rename = "entryId")]
         entry_id: String,
+    },
+    ActivateMany {
+        #[serde(rename = "entryIds")]
+        entry_ids: Vec<String>,
     },
     Advance,
     Progress,

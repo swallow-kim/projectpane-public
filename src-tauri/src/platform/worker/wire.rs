@@ -8,6 +8,9 @@ impl Listing {
             Request::Activate { entry_id } => self
                 .activation_target(&entry_id)
                 .map(WorkerResponse::Target),
+            Request::ActivateMany { entry_ids } => self
+                .activation_targets(&entry_ids)
+                .map(WorkerResponse::Targets),
             other => self.handle(other).map(WorkerResponse::Batch),
         }
     }

@@ -51,9 +51,6 @@ pub async fn export_to_explorer(
     if matches!(action, ExportAction::Properties) && selection.entry_ids.len() != 1 {
         return Err(Fault::new(FaultCode::InvalidRequest));
     }
-    if selection.entry_ids.len() > 128 {
-        return Err(Fault::new(FaultCode::ResourceLimit));
-    }
     let mut paths = Vec::with_capacity(selection.entry_ids.len());
     for id in selection.entry_ids {
         paths.push(

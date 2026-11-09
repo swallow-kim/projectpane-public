@@ -157,6 +157,13 @@ fn lossy_native_names_have_distinct_ids_and_cannot_activate() {
             listing.activation_target(&entry.id).unwrap_err().code,
             FaultCode::InvalidPath
         );
+        assert_eq!(
+            listing
+                .activation_targets(std::slice::from_ref(&entry.id))
+                .unwrap_err()
+                .code,
+            FaultCode::InvalidPath
+        );
     }
     sorted(&mut listing, SortColumn::Name, SortDirection::Desc);
     for entry in before.entries {

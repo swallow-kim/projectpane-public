@@ -2,7 +2,7 @@
 
 Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝트별 폴더와 화면 구성을 저장하고 여러 폴더에서 기본 파일 작업을 수행합니다.
 
-현재 소스 버전은 **1.3.0**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 [1.3.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.3.0)에서 제공합니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
+현재 소스 버전은 **1.4.0**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. 현재 공개된 Windows x64 설치 파일과 SHA256은 [1.3.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.3.0)에서 제공합니다. 1.4.0은 서명·패키지·게시 검증을 마친 뒤 배포합니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
 
 ## 기능
 
@@ -11,12 +11,18 @@ Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝�
 - 활성 파일 목록에서 타이핑하면 파일명 필터로 입력·포커스 이동. 기존 필터는 새 검색어로 교체하며 필터에서 Esc로 비우고 목록에 복귀.
 - Ctrl/Shift 다중 선택, 빈 공간 드래그 영역 선택, 조밀한 두 줄 패널 헤더와 키보드 리사이즈.
 - Ctrl+Shift+P 빠른 이동, Ctrl+Shift+T 닫은 탭 복원, 탭 닫기 보호. 상시 디스크 색인은 사용하지 않음.
-- 일반 복사는 추가 재확인 없이 실행. 충돌 때 건너뛰기·다른 이름 복사, 이동·삭제 등의 확인 유지. 진행·취소·결과는 상단 파일 작업 버튼에서 확인.
+- 일반 복사는 추가 재확인 없이 실행. 충돌 때 건너뛰기·다른 이름 복사, 이동·삭제 등의 확인 유지. 복사 진행·취소·결과는 상단 복사 작업 버튼에서 확인하고 다른 작업은 파일 작업 버튼에서 확인.
 - 이름·확장자 분리 편집, 최종 이름 미리보기, 절대·상대경로 텍스트 복사.
 - ZIP 압축·새 폴더에 해제, 설치된 압축 앱으로 전달. 기본 앱 열기·속성·탐색기에서 선택 항목 보기와 시험용 Shell 메뉴.
 - 업데이트 버튼과 시작 후 하루 한 번 확인. 설치형은 사용자 선택으로 다운로드·서명 검증·설치·재시작하며, ZIP은 다운로드 안내만 제공합니다.
 
 자세한 동작과 단축키는 [사용·복구 안내](docs/user-guide.md), 기능별 변경은 [변경 내역](CHANGELOG.md)을 참고하세요.
+
+## 1.4.0 복사와 목록 응답 개선
+
+복사 선택과 결과를 디스크에 나누어 기록하고 폴더를 순차 탐색합니다. 이 복사 경로에는 이전 128/1,024개 선택·2,048개 하위 결과 한도를 적용하지 않으며, 경로·개별 요청 크기·파일 형식 검사는 유지합니다. 목록 필터 입력과 ASCII 이름 정렬·다중 선택 해석을 개선했습니다. 측정값과 실제 앱 검사 범위는 [대용량 복사 검증 기록](docs/large-copy-validation-20261109.md)을 참고하세요.
+
+ADS가 있는 원본을 ADS 미지원 대상으로 복사하면 해당 대상 파일을 만들기 전에 거부합니다. 스트림을 버리는 대체 복사는 하지 않습니다. 링크·재분석 지점·특수 파일 등 지원하지 않는 항목은 안전하게 중단합니다. 이미 완료된 항목은 유지되므로 실패·취소 후 원본과 대상을 확인하세요. 실제 원격 NAS는 검증하지 않았으며 Explorer 물리 입력·클립보드 왕복 시험은 네이티브 입력/클립보드 접근 제한으로 완료하지 못했습니다.
 
 ## 설치와 업데이트
 
@@ -60,6 +66,6 @@ Windows 산출 경로는 src-tauri/target/release/bundle/nsis/입니다. 빌드�
 - [사용·복구 안내](docs/user-guide.md)
 - [아키텍처](docs/architecture.md), [UI 규칙](docs/design-system.md), [후속 단계](docs/post-v1-phases.md)
 - [MIT 라이선스](LICENSE), [제3자 고지](THIRD_PARTY_NOTICES.md)
-- [의존성 목록](docs/dependency-licenses-1.3.0.md), [원문 고지 모음](docs/third-party-license-texts.md)
+- [의존성 목록](docs/dependency-licenses-1.4.0.md), [원문 고지 모음](docs/third-party-license-texts.md)
 
 ProjectPane 소유 코드·문서는 MIT입니다. 제3자 코드·아이콘·SDK·설치 도구에는 각각의 원래 조건이 적용됩니다.

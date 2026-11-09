@@ -19,7 +19,7 @@ test('right-click a selected row preserves multi-selection for internal copy', a
   await expect(rows.nth(1)).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('menuitem', { name: '이름 변경', exact: true })).toBeDisabled();
   await page.getByRole('menuitem', { name: '복사 담기', exact: true }).click();
-  await expect.poll(() => page.evaluate(() => Reflect.get(window, 'p4Calls').filter((call: { command: string }) => call.command === 'capture_transfer').at(-1)?.args.request.selection.entryIds)).toEqual(['entry-0', 'entry-1']);
+  await expect.poll(() => page.evaluate(() => Reflect.get(window, 'p4Calls').filter((call: { command: string }) => call.command === 'append_copy_capture').at(-1)?.args.request.selection.entryIds)).toEqual(['entry-0', 'entry-1']);
   await expect(page.getByRole('menu')).toHaveCount(0);
 });
 test('keyboard menu supports navigation, escape and focus restoration', async ({ page }) => {

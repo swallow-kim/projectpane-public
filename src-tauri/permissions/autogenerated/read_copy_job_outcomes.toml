@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-copy-job-outcomes"
+description = "Enables the read_copy_job_outcomes command without any pre-configured scope."
+commands.allow = ["read_copy_job_outcomes"]
+
+[[permission]]
+identifier = "deny-read-copy-job-outcomes"
+description = "Denies the read_copy_job_outcomes command without any pre-configured scope."
+commands.deny = ["read_copy_job_outcomes"]

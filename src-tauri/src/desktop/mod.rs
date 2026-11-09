@@ -1,5 +1,6 @@
 mod archive_tools;
 mod commands;
+mod copy_jobs;
 mod explorer;
 mod focus;
 mod geometry;
@@ -63,6 +64,17 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             projects::save_project_preset,
             projects::save_project_session,
             projects::project_close_ready,
+            copy_jobs::begin_copy_capture,
+            copy_jobs::append_copy_capture,
+            copy_jobs::seal_copy_capture,
+            copy_jobs::discard_copy_capture,
+            copy_jobs::capture_copy_clipboard,
+            copy_jobs::export_copy_capture,
+            copy_jobs::begin_copy_job,
+            copy_jobs::get_copy_job,
+            copy_jobs::list_copy_jobs,
+            copy_jobs::cancel_copy_job,
+            copy_jobs::read_copy_job_outcomes,
             operations::get_operation_state,
             operations::prepare_operation,
             operations::capture_transfer,

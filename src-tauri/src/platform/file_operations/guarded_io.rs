@@ -27,8 +27,11 @@ pub(super) fn info(file: &File) -> Result<BY_HANDLE_FILE_INFORMATION, Fault> {
     if unsafe { GetFileInformationByHandle(file.as_raw_handle(), &mut info) } == 0 {
         return Err(std::io::Error::last_os_error().into());
     }
-    if info.dwFileAttributes & (0x400 | 0x4000) != 0 {
-        return Err(Fault::new(FaultCode::InvalidPath)); // reparse / encrypted
+    if info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != 0 {
+        return Err(Fault::new(FaultCode::UnsafeReparsePoint));
+    }
+    if info.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED != 0 {
+        return Err(Fault::new(FaultCode::UnsupportedProvider));
     }
     Ok(info)
 }
@@ -76,7 +79,52 @@ pub(super) fn ancestors(paths: &[&Path], skip: &HashSet<String>) -> Result<Vec<F
 }
 pub(super) fn create(parent: &File, name: &str, folder: bool) -> Result<File, Fault> {
     validate_leaf_name(name)?;
-    let mut name: Vec<u16> = name.encode_utf16().collect();
+    create_named(parent, &name.encode_utf16().collect::<Vec<_>>(), folder)
+}
+
+/// Permit exactly one named $DATA stream, never a relative/absolute path.
+pub(super) fn validate_stream_name(name: &[u16]) -> Result<(), Fault> {
+    const SUFFIX: &[u16] = &[58, 36, 68, 65, 84, 65]; // :$DATA
+    if name.len() <= SUFFIX.len() + 1
+        || name[0] != 58
+        || !name.ends_with(SUFFIX)
+        || name[1..name.len() - SUFFIX.len()]
+            .iter()
+            .any(|c| matches!(*c, 0 | 47 | 58 | 92))
+    {
+        return Err(Fault::new(FaultCode::InvalidPath));
+    }
+    Ok(())
+}
+
+/// FILE_CREATE refuses a stream introduced by another writer. Relative parent
+/// resolution and the primary deny-delete handle bind the owned basename.
+pub(super) fn create_stream(
+    parent: &File,
+    primary: &File,
+    leaf: &str,
+    stream: &[u16],
+) -> Result<File, Fault> {
+    validate_leaf_name(leaf)?;
+    validate_stream_name(stream)?;
+    let expected = info(primary)?;
+    let name: Vec<u16> = leaf.encode_utf16().chain(stream.iter().copied()).collect();
+    let created = create_named(parent, &name, false)?;
+    let actual = info(&created)?;
+    if actual.dwVolumeSerialNumber != expected.dwVolumeSerialNumber
+        || actual.nFileIndexHigh != expected.nFileIndexHigh
+        || actual.nFileIndexLow != expected.nFileIndexLow
+    {
+        return Err(Fault::new(FaultCode::StaleRequest));
+    }
+    Ok(created)
+}
+
+fn create_named(parent: &File, name: &[u16], folder: bool) -> Result<File, Fault> {
+    if name.len() > 32767 {
+        return Err(Fault::new(FaultCode::ResourceLimit));
+    }
+    let mut name = name.to_vec();
     let text = UNICODE_STRING {
         Length: (name.len() * 2) as u16,
         MaximumLength: (name.len() * 2) as u16,
@@ -96,7 +144,7 @@ pub(super) fn create(parent: &File, name: &str, folder: bool) -> Result<File, Fa
     let status = unsafe {
         NtCreateFile(
             &mut handle,
-            FILE_GENERIC_READ | if folder { 0 } else { FILE_GENERIC_WRITE },
+            FILE_GENERIC_READ | FILE_WRITE_ATTRIBUTES | if folder { 0 } else { FILE_GENERIC_WRITE },
             &attributes,
             &mut io,
             std::ptr::null(),
@@ -115,10 +163,11 @@ pub(super) fn create(parent: &File, name: &str, folder: bool) -> Result<File, Fa
         )
     };
     if status < 0 {
-        return Err(Fault::new(if status as u32 == 0xc0000035 {
-            FaultCode::DestinationExists
-        } else {
-            FaultCode::IoError
+        return Err(Fault::new(match status as u32 {
+            0xc0000035 => FaultCode::DestinationExists,
+            0xc00000bb | 0xc0000010 | 0xc0000002 => FaultCode::UnsupportedProvider,
+            0xc0000022 => FaultCode::AccessDenied,
+            _ => FaultCode::IoError,
         }));
     }
     // SAFETY: successful NtCreateFile transfers one unique owned handle.

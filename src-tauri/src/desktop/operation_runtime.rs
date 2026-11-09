@@ -7,6 +7,9 @@ use tauri::{AppHandle, Manager, WebviewWindow};
 use tokio::sync::{Semaphore, watch};
 
 pub struct DesktopOperations {
+    pub copies: Arc<
+        std::sync::OnceLock<Result<Arc<projectpane_core::services::copy_jobs::CopyJobs>, Fault>>,
+    >,
     ready: watch::Receiver<Option<Result<Arc<OperationService>, Fault>>>,
     pub admission: Arc<Semaphore>,
     pub closing: AtomicBool,
@@ -19,11 +22,18 @@ impl DesktopOperations {
         let (sender, ready) = watch::channel(None);
         let root = app.path().app_local_data_dir();
         let override_path = std::env::var_os("PROJECTPANE_DATA_DIR");
+        let copies = Arc::new(std::sync::OnceLock::new());
+        let initializing_copies = copies.clone();
         let owner = window.hwnd().map(|handle| handle.0 as usize);
         tauri::async_runtime::spawn(async move {
             let result = tauri::async_runtime::spawn_blocking(move || {
                 let owner = owner.map_err(|_| Fault::new(FaultCode::InvalidState))?;
                 let root = root.map_err(|_| Fault::new(FaultCode::InvalidPath))?;
+                let _ =
+                    initializing_copies.set(projectpane_core::services::copy_jobs::CopyJobs::open(
+                        &root,
+                        override_path.as_deref(),
+                    ));
                 OperationService::open(&root, override_path.as_deref())
                     .map(|service| (service, owner))
             })
@@ -43,6 +53,7 @@ impl DesktopOperations {
             }
         });
         Self {
+            copies,
             ready,
             admission: Arc::new(Semaphore::new(1)),
             closing: AtomicBool::new(false),

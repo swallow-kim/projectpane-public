@@ -26,11 +26,24 @@ struct CloseNotice {
 }
 
 pub fn exit_allowed(app: &AppHandle) -> bool {
-    app.try_state::<DesktopOperations>()
-        .is_some_and(|state| state.exit_allowed.load(Ordering::Acquire))
+    app.try_state::<DesktopOperations>().is_some_and(|state| {
+        state.exit_allowed.load(Ordering::Acquire)
+            && !state
+                .copies
+                .get()
+                .is_some_and(|r| r.as_ref().is_ok_and(|copies| copies.active()))
+    })
 }
 
 fn finish(app: &AppHandle) {
+    if app
+        .state::<DesktopOperations>()
+        .copies
+        .get()
+        .is_some_and(|r| r.as_ref().is_ok_and(|c| c.active()))
+    {
+        return;
+    }
     let state = app.state::<DesktopOperations>();
     state.exit_allowed.store(true, Ordering::Release);
     let _ = app.emit_to(
@@ -82,6 +95,27 @@ pub fn request_close(app: &AppHandle) {
             }
             if !state.closing.load(Ordering::Acquire) {
                 return;
+            }
+        }
+        let _ = state.service().await;
+        // Do not stop the legacy lane (which cannot reopen after Stopped) until
+        // copy jobs have settled. The close dialog can cancel or continue meanwhile.
+        if let Some(Ok(copies)) = state.copies.get() {
+            let _ = copies.close(false);
+            if copies.active() {
+                let _ = app.emit_to(
+                    "main",
+                    "projectpane-operation-close",
+                    CloseNotice {
+                        close_state: OperationCloseState::Deciding,
+                    },
+                );
+                while copies.active() && state.closing.load(Ordering::Acquire) {
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                }
+                if !state.closing.load(Ordering::Acquire) {
+                    return;
+                }
             }
         }
         let service = match state.service().await {
@@ -139,15 +173,50 @@ pub async fn operation_close_choice(
     if !state.closing.load(Ordering::Acquire) {
         return Err(Fault::new(FaultCode::InvalidState));
     }
-    let service = state.service().await?;
+    let service = match state.service().await {
+        Ok(service) => service,
+        Err(error) => {
+            if let Some(Ok(copies)) = state.copies.get() {
+                if copy_close_fallback(copies, choice)? {
+                    super::updates::cancel(window.app_handle());
+                    state.closing.store(false, Ordering::Release);
+                }
+                return Ok(());
+            }
+            return Err(error);
+        }
+    };
     match choice {
         CloseChoice::Wait => {
+            if let Some(Ok(copies)) = state.copies.get() {
+                copies.close(false)?;
+            }
+            if state
+                .copies
+                .get()
+                .is_some_and(|r| r.as_ref().is_ok_and(|c| c.active()))
+            {
+                return Ok(());
+            }
             service.request_close(false).await?;
         }
         CloseChoice::Cancel => {
+            if let Some(Ok(copies)) = state.copies.get() {
+                copies.close(true)?;
+            }
+            if state
+                .copies
+                .get()
+                .is_some_and(|r| r.as_ref().is_ok_and(|c| c.active()))
+            {
+                return Ok(());
+            }
             service.request_close(true).await?;
         }
         CloseChoice::Continue => {
+            if let Some(Ok(copies)) = state.copies.get() {
+                copies.keep_open()?;
+            }
             super::updates::cancel(window.app_handle());
             if !matches!(
                 service.state().await?.close_state,
@@ -158,6 +227,13 @@ pub async fn operation_close_choice(
             state.closing.store(false, Ordering::Release);
         }
         CloseChoice::ExitWithoutResults => {
+            if state
+                .copies
+                .get()
+                .is_some_and(|r| r.as_ref().is_ok_and(|c| c.active()))
+            {
+                return Err(Fault::new(FaultCode::Busy));
+            }
             if super::updates::pending(window.app_handle()) {
                 return Err(Fault::new(FaultCode::InvalidState));
             }
@@ -165,4 +241,43 @@ pub async fn operation_close_choice(
         }
     }
     Ok(())
+}
+
+// Copy jobs remain controllable even if the independent legacy journal is corrupt.
+fn copy_close_fallback(
+    copies: &projectpane_core::services::copy_jobs::CopyJobs,
+    choice: CloseChoice,
+) -> Result<bool, Fault> {
+    match choice {
+        CloseChoice::Wait => {
+            copies.close(false)?;
+            Ok(false)
+        }
+        CloseChoice::Cancel => {
+            copies.close(true)?;
+            Ok(false)
+        }
+        CloseChoice::Continue => {
+            copies.keep_open()?;
+            Ok(true)
+        }
+        CloseChoice::ExitWithoutResults if copies.active() => Err(Fault::new(FaultCode::Busy)),
+        CloseChoice::ExitWithoutResults => Ok(false),
+    }
+}
+#[cfg(test)]
+mod copy_close_tests {
+    use super::*;
+    #[test]
+    fn legacy_failure_fallback_can_cancel_wait_and_continue_copies() {
+        let root = tempfile::tempdir().unwrap();
+        let copies =
+            projectpane_core::services::copy_jobs::CopyJobs::open(root.path(), None).unwrap();
+        assert!(!copy_close_fallback(&copies, CloseChoice::Cancel).unwrap());
+        assert!(copies.begin_capture().is_err());
+        assert!(copy_close_fallback(&copies, CloseChoice::Continue).unwrap());
+        assert!(copies.begin_capture().is_ok());
+        assert!(!copy_close_fallback(&copies, CloseChoice::Wait).unwrap());
+        assert!(copies.begin_capture().is_err());
+    }
 }

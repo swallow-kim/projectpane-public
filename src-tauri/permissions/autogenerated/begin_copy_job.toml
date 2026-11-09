@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-begin-copy-job"
+description = "Enables the begin_copy_job command without any pre-configured scope."
+commands.allow = ["begin_copy_job"]
+
+[[permission]]
+identifier = "deny-begin-copy-job"
+description = "Denies the begin_copy_job command without any pre-configured scope."
+commands.deny = ["begin_copy_job"]

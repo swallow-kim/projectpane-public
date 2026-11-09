@@ -62,3 +62,6 @@ mod tests;
 mod tree_boundary_tests;
 #[cfg(test)]
 mod wsl_tests;
+
+mod stream_copy;
+pub use stream_copy::copy_root;

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-discard-copy-capture"
+description = "Enables the discard_copy_capture command without any pre-configured scope."
+commands.allow = ["discard_copy_capture"]
+
+[[permission]]
+identifier = "deny-discard-copy-capture"
+description = "Denies the discard_copy_capture command without any pre-configured scope."
+commands.deny = ["discard_copy_capture"]

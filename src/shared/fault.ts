@@ -1,10 +1,13 @@
 import { z } from 'zod';
 
-export const nativeFaultCodes = ['invalid_request', 'invalid_path', 'invalid_state', 'not_found', 'access_denied', 'io_error', 'resource_limit', 'payload_limit', 'protocol_error', 'worker_unavailable', 'busy', 'destination_exists', 'cancelled', 'timeout', 'stale_request'] as const;
+export const nativeFaultCodes = ['destination_streams_unsupported', 'unsupported_provider', 'unsafe_reparse_point', 'invalid_request', 'invalid_path', 'invalid_state', 'not_found', 'access_denied', 'io_error', 'resource_limit', 'payload_limit', 'protocol_error', 'worker_unavailable', 'busy', 'destination_exists', 'cancelled', 'timeout', 'stale_request'] as const;
 export const nativeFaultSchema = z.strictObject({ code: z.enum(nativeFaultCodes) });
 export type FaultCode = typeof nativeFaultCodes[number] | 'ipc_error';
 
 const messages: Readonly<Record<FaultCode, string>> = {
+  destination_streams_unsupported: '대상 저장소는 이 항목의 추가 데이터 스트림(ADS)을 보존할 수 없어 복사를 중단했습니다. 해당 항목은 새로 만들지 않았습니다. ADS를 지원하는 대상 저장소를 선택하세요.',
+  unsupported_provider: '이 저장소는 안전한 복사에 필요한 파일 식별 또는 생성 기능을 지원하지 않습니다.',
+  unsafe_reparse_point: '선택한 항목이나 상위 경로에 심볼릭 링크 또는 재분석 지점이 있어 처리하지 않았습니다. 링크를 따라가지 않습니다. 링크가 없는 실제 원본 경로와 대상 폴더를 직접 선택하세요.',
   destination_exists: '대상에 같은 이름의 항목이 있습니다. 덮어쓰지 않았습니다.',
   invalid_request: '조회 요청을 처리할 수 없습니다.',
   invalid_path: '올바른 절대 경로를 입력하세요.',

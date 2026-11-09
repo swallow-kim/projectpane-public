@@ -50,10 +50,10 @@ test('synthetic composition defers revalidation until compositionend', async ({ 
 });
 
 test('clipboard capture keeps its snapshot until the held IPC completes', async ({ page }) => {
-  await page.evaluate(() => Reflect.set(window, 'p4HoldCapture', true));
+  await page.evaluate(() => Reflect.set(window, 'p4HoldCopyCapture', true));
   const before = await starts(page);
   await page.getByRole('group', { name: '패널 1 파일 작업', exact: true }).getByRole('button', { name: '복사 담기', exact: true }).click();
-  await expect(page.getByText('파일 요청 처리 중…', { exact: false })).toBeVisible();
+  await expect(page.getByText('선택 항목 수집', { exact: false })).toBeVisible();
   await returnToApp(page); await page.waitForTimeout(300);
   expect(await starts(page)).toBe(before);
   await page.evaluate(() => Reflect.get(window, 'p4Release')());

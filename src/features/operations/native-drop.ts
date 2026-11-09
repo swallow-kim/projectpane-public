@@ -18,7 +18,7 @@ export function nativeDrop(payload: unknown, scale: number, drop: boolean) {
   const { position, paths } = payload as { position?: { x?: unknown; y?: unknown }; paths?: unknown };
   if (!position || typeof position.x !== 'number' || typeof position.y !== 'number'
     || !Number.isFinite(position.x) || !Number.isFinite(position.y)) return null;
-  if (drop && (!Array.isArray(paths) || !paths.length || paths.length > 1024
+  if (drop && (!Array.isArray(paths) || !paths.length
     || paths.some(path => typeof path !== 'string' || !path.length || path.includes('\0')))) return null;
   return { x: position.x / scale, y: position.y / scale, paths: drop ? paths as string[] : [] };
 }

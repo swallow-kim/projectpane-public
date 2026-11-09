@@ -30,7 +30,7 @@ impl Broker {
                 revision: location.revision,
                 index: location.index,
             }),
-            WorkerResponse::Batch(_) | WorkerResponse::Target(_) => {
+            WorkerResponse::Batch(_) | WorkerResponse::Target(_) | WorkerResponse::Targets(_) => {
                 Err(Fault::new(FaultCode::ProtocolError))
             }
         }
@@ -43,9 +43,26 @@ impl Broker {
     ) -> Result<ActivationTarget, Fault> {
         match self.query(identity, Request::Activate { entry_id }).await? {
             WorkerResponse::Target(target) => Ok(target),
-            WorkerResponse::Batch(_) | WorkerResponse::Located(_) => {
+            WorkerResponse::Batch(_) | WorkerResponse::Located(_) | WorkerResponse::Targets(_) => {
                 Err(Fault::new(FaultCode::ProtocolError))
             }
+        }
+    }
+
+    pub async fn resolve_activations(
+        &self,
+        identity: &Identity,
+        entry_ids: Vec<String>,
+    ) -> Result<Vec<ActivationTarget>, Fault> {
+        if entry_ids.is_empty() || entry_ids.len() > MAX_ACTIVATION_BATCH {
+            return Err(Fault::new(FaultCode::InvalidRequest));
+        }
+        match self
+            .query(identity, Request::ActivateMany { entry_ids })
+            .await?
+        {
+            WorkerResponse::Targets(targets) => Ok(targets),
+            _ => Err(Fault::new(FaultCode::ProtocolError)),
         }
     }
 

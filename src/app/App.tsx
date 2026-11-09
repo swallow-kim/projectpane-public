@@ -1,3 +1,4 @@
+import { CopyJobTray } from '../features/operations/CopyJobTray';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Splitter, type LayoutCount } from './Splitter';
 import { ExplorerPane, type PaneHandle } from '../features/explorer/ExplorerPane';
@@ -198,6 +199,7 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
     {palette && <QuickPalette items={palette} dismiss={() => setPalette(null)} run={runPalette} />}
     <header className="app-header"><h1>ProjectPane</h1>
       {desktop && <UpdateControl ready={projects.ready} persisted={Boolean(projects.toolbar.selectedId) && !projects.toolbar.readOnly} onPreparing={setUpdatePreparing} />}
+      {desktop && <CopyJobTray revision={transfer.copyRevision} refresh={refreshFiles} />}
       {desktop && <OperationTray state={operations.state} unavailable={operations.error || operations.state?.closeState === 'blocked'} refresh={operations.refresh} />}
       <button className="favorites-manage" disabled={!projects.ready || projects.busy || closing} title="프로젝트·탭·즐겨찾기·최근 폴더·명령 (Ctrl+Shift+P)" onClick={openPalette}>빠른 이동</button>
       {desktop && <button className="favorites-manage" onClick={() => setShowFavorites(true)}>즐겨찾기 관리</button>}
@@ -226,7 +228,7 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
     <div className="explorer-workspace" id="project-workspace" role={desktop && projects.available ? 'tabpanel' : undefined} aria-label="현재 프로젝트 탐색기">
     <div inert={projects.busy} className={`panes layout-${layout}`} style={{ gridTemplateColumns: layout === 1 ? 'minmax(0, 1fr)' : `minmax(0, ${columns}fr) 0px minmax(0, ${100 - columns}fr)`, gridTemplateRows: layout === 4 ? `minmax(min-content, ${rows}fr) 0px minmax(min-content, ${100 - rows}fr)` : 'minmax(min-content, 1fr)' }}>
       {projects.ready && [0, 1, 2, 3].map(pane => <ExplorerPane key={pane} pane={pane} visible={pane < layout} initialPath={projects.rootPath ?? startup.folders[pane]} projectRoot={projects.rootPath}
-        restored={restored?.[pane]} onWorkspaceChange={projects.capture} fileActionsAvailable={operations.available && !projects.busy && !transfer.busy} onFileAction={changeFileAction} transfer={transfer}
+        restored={restored?.[pane]} onWorkspaceChange={projects.capture} fileActionsAvailable={operations.available && !projects.busy} onFileAction={changeFileAction} transfer={transfer}
         ref={handle => { panes.current[pane] = handle; }} activate={() => { active.current = pane; projects.capture(); }} />)}
       {layout > 1 && <Splitter axis="columns" value={columns} change={setColumns} />}
       {layout === 4 && <Splitter axis="rows" value={rows} change={setRows} />}
@@ -234,7 +236,8 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
     </div>
     {desktop && <div className="app-status">
       {favorites.error && <div className="notice" role="alert">{favorites.error} <button disabled={favorites.busy} onClick={() => void favorites.reload()}>즐겨찾기 다시 불러오기</button></div>}
-      <div className="transfer-status" role="status">{transfer.busy ? '파일 요청 처리 중…' : transfer.notice ? transfer.notice : transfer.clipboard ? `앱 안에 ${transfer.clipboard.mode === 'copy' ? '복사' : '잘라내기'} ${transfer.clipboard.count}개 담음 · ${transfer.clipboard.mode === 'move' ? '앱 안에서 Ctrl+V (Windows 잘라내기 아님)' : 'Ctrl+Shift+V'}` : '준비됨'}</div>
+      <div className="transfer-status" role="status">{transfer.busy ? (transfer.stage ?? '파일 요청 처리 중…') : transfer.notice ? transfer.notice : transfer.clipboard ? `앱 안에 ${transfer.clipboard.mode === 'copy' ? '복사' : '잘라내기'} ${transfer.clipboard.count}개 담음 · ${transfer.clipboard.mode === 'move' ? '앱 안에서 Ctrl+V (Windows 잘라내기 아님)' : 'Ctrl+Shift+V'}` : '준비됨'}</div>
+      {transfer.canCancelPreparing && <button onClick={transfer.cancelPreparing}>항목 수집 취소</button>}
       {transfer.error && <div className="notice" role="alert">{transfer.error}</div>}
 
     </div>}

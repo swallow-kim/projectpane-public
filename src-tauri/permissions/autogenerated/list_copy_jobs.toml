@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-copy-jobs"
+description = "Enables the list_copy_jobs command without any pre-configured scope."
+commands.allow = ["list_copy_jobs"]
+
+[[permission]]
+identifier = "deny-list-copy-jobs"
+description = "Denies the list_copy_jobs command without any pre-configured scope."
+commands.deny = ["list_copy_jobs"]

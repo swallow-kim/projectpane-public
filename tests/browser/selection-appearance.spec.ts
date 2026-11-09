@@ -62,6 +62,6 @@ test('Escape during a drag preserves multiple selection after button release', a
   await appearance(pane, [1, 3]);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(await page.evaluate(() => (Reflect.get(window, 'p4Calls') as { command: string }[])
-    .filter(call => ['capture_transfer', 'execute_operation', 'native_export'].includes(call.command)))).toHaveLength(0);
+    .filter(call => ['capture_transfer', 'execute_operation', 'begin_copy_capture', 'begin_copy_job', 'export_copy_capture', 'export_to_explorer'].includes(call.command)))).toHaveLength(0);
   await row(4).click(); await appearance(pane, [4]);
 });

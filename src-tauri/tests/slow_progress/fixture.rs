@@ -41,7 +41,8 @@ pub fn run() {
             Request::Advance
             | Request::SetView { .. }
             | Request::Locate { .. }
-            | Request::Activate { .. } => panic!("unexpected fixture request"),
+            | Request::Activate { .. }
+            | Request::ActivateMany { .. } => panic!("unexpected fixture request"),
         };
         let batch: Result<Batch, Fault> = Ok(Batch {
             revision: 1,

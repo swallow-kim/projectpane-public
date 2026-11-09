@@ -21,7 +21,7 @@ test('absolute path copy uses the right-clicked item and stays separate from fil
   await page.getByRole('menuitem', { name: '절대경로 복사', exact: true }).click();
   await expect(page.locator('.transfer-status')).toContainText('절대경로 1개를 텍스트로 복사했습니다');
   expect(await exports(page)).toEqual([expect.objectContaining({ action: 'absolute_path', basePath: null, selection: expect.objectContaining({ entryIds: ['entry-2'] }) })]);
-  expect(await page.evaluate(() => Reflect.get(window, 'p4Calls').filter((c: { command: string }) => ['capture_transfer', 'execute_operation'].includes(c.command)))).toHaveLength(0);
+  expect(await page.evaluate(() => Reflect.get(window, 'p4Calls').filter((c: { command: string }) => ['capture_transfer', 'execute_operation', 'begin_copy_capture', 'begin_copy_job'].includes(c.command)))).toHaveLength(0);
 });
 
 test('relative paths keep the selected group and use the current panel folder', async ({ page }) => {
