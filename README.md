@@ -2,7 +2,7 @@
 
 Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝트별 폴더와 화면 구성을 저장하고 여러 폴더에서 기본 파일 작업을 수행합니다.
 
-현재 소스 버전은 **1.4.0**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. 현재 공개된 Windows x64 설치 파일과 SHA256은 [1.3.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.3.0)에서 제공합니다. 1.4.0은 서명·패키지·게시 검증을 마친 뒤 배포합니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
+현재 소스 버전은 **1.4.0**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-09 게시한 [1.4.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.4.0)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
 
 ## 기능
 
@@ -63,6 +63,7 @@ Windows 산출 경로는 src-tauri/target/release/bundle/nsis/입니다. 빌드�
 
 ## 문서와 라이선스
 
+- [1.4.0 최종 패키지·배포 검증](docs/release-1.4.0-validation.md)
 - [사용·복구 안내](docs/user-guide.md)
 - [아키텍처](docs/architecture.md), [UI 규칙](docs/design-system.md), [후속 단계](docs/post-v1-phases.md)
 - [MIT 라이선스](LICENSE), [제3자 고지](THIRD_PARTY_NOTICES.md)
