@@ -1,12 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import './project-toolbar.css';
-export type ProjectSummary = { readonly id: string; readonly name: string };
+export type ProjectSummary = { readonly id: string; readonly name: string; readonly rootPath: string };
 export type ProjectCreation = { readonly name: string; readonly rootPath: string };
 export type ProjectToolbarCapabilities = {
   readonly select?: boolean;
   readonly create?: boolean;
-  readonly rename?: boolean;
+  readonly edit?: boolean;
   readonly duplicate?: boolean;
   readonly remove?: boolean;
   readonly savePreset?: boolean;
@@ -24,7 +24,7 @@ export interface ProjectToolbarProps {
   readonly capabilities?: ProjectToolbarCapabilities;
   readonly onSelect: (id: string) => void;
   readonly onCreate: (project: ProjectCreation) => void;
-  readonly onRename: (id: string, name: string) => void;
+  readonly onEdit: (id: string, project: ProjectCreation) => void;
   readonly onDuplicate: (id: string, name: string) => void;
   readonly onRemoveFromList: (id: string) => void;
   readonly onSaveCurrentAsPreset: (id: string) => void;
@@ -34,14 +34,14 @@ export interface ProjectToolbarProps {
 
 const actions = {
   create: { label: '새 프로젝트', submit: '만들기', hint: '이름과 루트 폴더 경로를 입력하세요.' },
-  rename: { label: '이름 변경', submit: '변경하기', hint: '목록에 표시할 프로젝트 이름을 입력하세요.' },
+  edit: { label: '프로젝트 편집', submit: '변경하기', hint: '이름과 루트 경로를 변경합니다. 열려 있는 폴더와 실제 파일은 이동하지 않습니다.' },
   duplicate: { label: '복제', submit: '복제하기', hint: '프로젝트 설정을 복제합니다. 파일과 폴더는 복사하지 않습니다.' },
   remove: { label: '목록에서 제거', submit: '제거하기', hint: '파일과 폴더는 삭제되지 않습니다.' },
   savePreset: { label: '현재 상태를 프리셋으로 저장', submit: '프리셋 저장하기', hint: '현재 작업 상태를 이 프로젝트의 프리셋으로 저장합니다. 기존 프리셋은 대체됩니다.' },
   restorePreset: { label: '프리셋 복원', submit: '복원하기', hint: '현재 작업 상태를 저장된 프리셋으로 바꿉니다.' },
 } as const;
 type Action = keyof typeof actions;
-const actionOrder: readonly Action[] = ['create', 'rename', 'duplicate', 'remove', 'savePreset', 'restorePreset'];
+const actionOrder: readonly Action[] = ['create', 'edit', 'duplicate', 'remove', 'savePreset', 'restorePreset'];
 
 export function ProjectToolbar(props: ProjectToolbarProps) {
   return <ToolbarContent {...props} />;
@@ -76,7 +76,7 @@ function ToolbarContent(props: ProjectToolbarProps) {
     if (!action || !allowed(action)) return;
     switch (action) {
       case 'create': props.onCreate(draft); break;
-      case 'rename': if (selected) props.onRename(selected.id, draft.name); break;
+      case 'edit': if (selected) props.onEdit(selected.id, draft); break;
       case 'duplicate': if (selected) props.onDuplicate(selected.id, draft.name); break;
       case 'remove': if (selected) props.onRemoveFromList(selected.id); break;
       case 'savePreset': if (selected) props.onSaveCurrentAsPreset(selected.id); break;
@@ -136,13 +136,13 @@ type EditorProps = {
 
 function ProjectEditor({ id, action, selected, enabled, onCancel, onSubmit }: EditorProps) {
   const [name, setName] = useState(action === 'create' ? '' : action === 'duplicate' ? `${selected?.name ?? ''} 복사본` : selected?.name ?? '');
-  const [rootPath, setRootPath] = useState('');
+  const [rootPath, setRootPath] = useState(action === 'edit' ? selected?.rootPath ?? '' : '');
   const input = useRef<HTMLInputElement | null>(null);
   const cancel = useRef<HTMLButtonElement | null>(null);
   const composing = useRef(false);
   const settling = useRef(false);
-  const named = action === 'create' || action === 'rename' || action === 'duplicate';
-  const valid = !named || (name.trim().length > 0 && (action !== 'create' || rootPath.trim().length > 0));
+  const named = action === 'create' || action === 'edit' || action === 'duplicate';
+  const valid = !named || (name.trim().length > 0 && ((action !== 'create' && action !== 'edit') || rootPath.trim().length > 0));
   useEffect(() => { (input.current ?? cancel.current)?.focus(); }, []);
   const keyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     const commitKey = event.key === 'Enter' || event.key === 'Escape';
@@ -173,7 +173,7 @@ function ProjectEditor({ id, action, selected, enabled, onCancel, onSubmit }: Ed
         <input id={`${id}-name`} ref={input} value={name} required disabled={!enabled} autoComplete="off"
           onChange={event => setName(event.currentTarget.value)} />
       </label>
-      {action === 'create' && <label className="project-toolbar__root" htmlFor={`${id}-root`}>루트 경로
+      {(action === 'create' || action === 'edit') && <label className="project-toolbar__root" htmlFor={`${id}-root`}>루트 경로
         <input id={`${id}-root`} value={rootPath} required disabled={!enabled} autoComplete="off" spellCheck={false}
           placeholder="D:\작업 폴더" onChange={event => setRootPath(event.currentTarget.value)} />
       </label>}

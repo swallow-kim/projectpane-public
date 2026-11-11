@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { resolveNavigationPath } from './navigation-path';
 import { desktop } from '../../shared/ipc';
 import { toFaultCode, type FaultCode } from '../../shared/fault';
 import { addTab, closeTab, createPane, currentLocation, emptyPosition, navigateTab, parentPath, rememberPosition, travelTab, updateTab, type ExplorerTab, type PaneState, type TabView } from './navigation';
@@ -35,6 +36,9 @@ export function usePaneNavigation(pane: number, initialPath: string | undefined,
   });
   const navigate = (nextPath: string) => {
     if (!desktop || source !== 'real' || !nextPath) return;
+    try { nextPath = resolveNavigationPath(nextPath, projectRoot); }
+    catch { setActionError('invalid_path'); return; }
+    setActionError(null);
     if (nextPath === path) { listing.refresh(path, id, view.current); return; }
     listing.stop();
     update(value => navigateTab(value, nextPath));

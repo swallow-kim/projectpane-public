@@ -4,108 +4,106 @@ use std::io;
 
 impl ProjectService {
     pub fn list(&self) -> Result<Catalog, ProjectError> {
-        self.store
-            .transaction(|tx| {
-                let manifest = manifest(tx)?;
-                let mut warnings = Vec::new();
-                let mut projects = Vec::new();
-                for entry in &manifest.projects {
-                    let id = &entry.id;
-                    match read_project(tx, id) {
-                        Ok((value, repaired)) => {
-                            projects.push(metadata(&value));
-                            if repaired {
-                                warnings.push(warning("project_recovered_read_only", id));
-                            }
+        self.transaction(|tx| {
+            let manifest = manifest(tx)?;
+            let mut warnings = Vec::new();
+            let mut projects = Vec::new();
+            for entry in &manifest.projects {
+                let id = &entry.id;
+                match read_project(tx, id) {
+                    Ok((value, repaired)) => {
+                        projects.push(metadata(&value));
+                        if repaired {
+                            warnings.push(warning("project_recovered_read_only", id));
                         }
-                        Err(error) => warnings.push(warning(ProjectError::from(error).code, id)),
                     }
+                    Err(error) => warnings.push(warning(ProjectError::from(error).code, id)),
                 }
-                let last_project_id = match settings(tx) {
-                    Ok(settings) => settings
-                        .last_project_id
-                        .filter(|id| projects.iter().any(|project| &project.id == id)),
-                    Err(error) => {
-                        warnings.push(Warning {
-                            code: ProjectError::from(error).code.into(),
-                            project_id: None,
-                        });
-                        None
-                    }
-                };
-                let catalog = Catalog {
-                    projects,
-                    last_project_id,
-                    warnings,
-                };
-                bounded(&catalog)?;
-                Ok(catalog)
-            })
-            .map_err(Into::into)
+            }
+            let last_project_id = match settings(tx) {
+                Ok(settings) => settings
+                    .last_project_id
+                    .filter(|id| projects.iter().any(|project| &project.id == id)),
+                Err(error) => {
+                    warnings.push(Warning {
+                        code: ProjectError::from(error).code.into(),
+                        project_id: None,
+                    });
+                    None
+                }
+            };
+            let catalog = Catalog {
+                projects,
+                last_project_id,
+                warnings,
+            };
+            bounded(&catalog)?;
+            Ok(catalog)
+        })
+        .map_err(Into::into)
     }
     pub fn load(&self, request: LoadRequest) -> Result<Loaded, ProjectError> {
-        self.store
-            .transaction(|tx| {
-                known(tx, &request.project_id)?;
-                let (project, project_repaired) = read_project(tx, &request.project_id)?;
-                let mut loaded = Loaded {
-                    project: metadata(&project),
-                    workspace: project.preset,
-                    session_revision: 0,
-                    source: Source::Preset,
-                    read_only: project_repaired,
-                    warnings: Vec::new(),
-                };
-                if project_repaired {
-                    loaded
-                        .warnings
-                        .push(warning("project_recovered_read_only", &project.id));
-                }
-                match read_session(tx, &project.id) {
-                    Ok(Some((session, repaired))) => {
-                        loaded.session_revision = session.revision;
-                        loaded.read_only |= repaired;
-                        if repaired {
-                            loaded
-                                .warnings
-                                .push(warning("session_recovered_read_only", &project.id));
-                        }
-                        // The manifest root is immutable and was checked by read_project.
-                        // Rename/preset revisions therefore leave older sessions meaningful;
-                        // the next session save still requires the current project revision.
-                        if session.project_revision > project.revision {
-                            loaded.read_only = true;
-                            loaded
-                                .warnings
-                                .push(warning("session_revision_mismatch", &project.id));
-                        } else if request.source == Source::Session {
-                            loaded.workspace = session.workspace;
-                            loaded.source = Source::Session;
-                        }
+        self.transaction(|tx| {
+            known(tx, &request.project_id)?;
+            let (project, project_repaired) = read_project(tx, &request.project_id)?;
+            let mut loaded = Loaded {
+                project: metadata(&project),
+                workspace: project.preset,
+                session_revision: 0,
+                source: Source::Preset,
+                read_only: project_repaired,
+                warnings: Vec::new(),
+            };
+            if project_repaired {
+                loaded
+                    .warnings
+                    .push(warning("project_recovered_read_only", &project.id));
+            }
+            match read_session(tx, &project.id) {
+                Ok(Some((session, repaired))) => {
+                    loaded.session_revision = session.revision;
+                    loaded.read_only |= repaired;
+                    if repaired {
+                        loaded
+                            .warnings
+                            .push(warning("session_recovered_read_only", &project.id));
                     }
-                    Ok(None) => {
-                        if request.source == Source::Session {
-                            loaded
-                                .warnings
-                                .push(warning("session_missing", &project.id));
-                        }
-                    }
-                    Err(error) => {
+                    // Root edits rebase sessions durably before any service read.
+                    // Rename/preset revisions therefore leave older sessions meaningful;
+                    // the next session save still requires the current project revision.
+                    if session.project_revision > project.revision {
                         loaded.read_only = true;
                         loaded
                             .warnings
-                            .push(warning(ProjectError::from(error).code, &project.id));
+                            .push(warning("session_revision_mismatch", &project.id));
+                    } else if request.source == Source::Session {
+                        loaded.workspace = session.workspace;
+                        loaded.source = Source::Session;
                     }
                 }
-                bounded(&loaded)?;
-                if select(tx, Some(project.id.clone())).is_err() {
+                Ok(None) => {
+                    if request.source == Source::Session {
+                        loaded
+                            .warnings
+                            .push(warning("session_missing", &project.id));
+                    }
+                }
+                Err(error) => {
+                    loaded.read_only = true;
                     loaded
                         .warnings
-                        .push(warning("selection_save_failed", &project.id));
+                        .push(warning(ProjectError::from(error).code, &project.id));
                 }
-                Ok(loaded)
-            })
-            .map_err(Into::into)
+            }
+            bounded(&loaded)?;
+            if select(tx, Some(project.id.clone())).is_err() {
+                loaded
+                    .warnings
+                    .push(warning("selection_save_failed", &project.id));
+            }
+            Ok(loaded)
+        })
+        .map_err(Into::into)
     }
 }
 

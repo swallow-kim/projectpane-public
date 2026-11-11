@@ -18,6 +18,7 @@ export interface ProjectClient {
   list(): Promise<ProjectList>;
   load(id: string, source: 'session' | 'preset'): Promise<LoadedProject>;
   create(name: string, rootPath: string, workspace: Workspace): Promise<LoadedProject>;
+  edit(project: ProjectMetadata, name: string, rootPath: string): Promise<LoadedProject>;
   rename(project: ProjectMetadata, name: string): Promise<ProjectMetadata>;
   duplicate(project: ProjectMetadata, name: string): Promise<LoadedProject>;
   remove(project: ProjectMetadata): Promise<void>;

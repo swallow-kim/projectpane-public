@@ -64,7 +64,7 @@ export function useProjectWorkspace(startup: StartupConfig, snapshot: (root: str
       if (!workspace) throw new Error('Workspace not mounted');
       return client.create(name, rootPath, workspace);
     })),
-    onRename: (_id, name) => withCapture(current => current.mutate(project => project ? client.rename(project, name) : Promise.resolve(null))),
+    onEdit: (_id, { name, rootPath }) => withCapture(current => current.mutate(project => project ? client.edit(project, name, rootPath) : Promise.resolve(null))),
     onDuplicate: (_id, name) => withCapture(current => current.mutate(project => project ? client.duplicate(project, name) : Promise.resolve(null))),
     onRemoveFromList: () => withCapture(current => current.mutate(async project => { if (project) await client.remove(project); return null; }, true)),
     onSaveCurrentAsPreset: () => withCapture(current => current.mutate(async project => {

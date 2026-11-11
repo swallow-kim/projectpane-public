@@ -32,6 +32,7 @@
     "allow-create-project",
     "allow-load-project",
     "allow-rename-project",
+    "allow-edit-project",
     "allow-duplicate-project",
     "allow-remove-project",
     "allow-save-project-preset",

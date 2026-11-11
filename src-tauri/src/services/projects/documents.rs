@@ -35,7 +35,7 @@ pub(super) fn manifest(tx: &Transaction<'_>) -> io::Result<Manifest> {
         }),
     }
 }
-fn parse_manifest(bytes: &[u8]) -> io::Result<Manifest> {
+pub(super) fn parse_manifest(bytes: &[u8]) -> io::Result<Manifest> {
     if bytes.len() > MAX_PROJECT_BYTES {
         return Err(fail("payload_limit"));
     }
@@ -133,7 +133,7 @@ pub(super) fn write_project(tx: &Transaction<'_>, value: &Project) -> io::Result
     let bytes = serialize_project(value).map_err(contract)?;
     tx.write(&format!("{}.project.json", value.id), &bytes, |bytes| {
         let original = parse_project(bytes).map_err(contract)?;
-        if original.id != value.id || original.root_path != value.root_path {
+        if original.id != value.id {
             return Err(fail("read_only"));
         }
         Ok(())

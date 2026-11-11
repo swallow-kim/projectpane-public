@@ -79,27 +79,25 @@ fn read(tx: &Transaction<'_>) -> io::Result<Favorites> {
 }
 impl ProjectService {
     pub fn list_favorites(&self) -> Result<Favorites, ProjectError> {
-        self.store.transaction(read).map_err(Into::into)
+        self.transaction(read).map_err(Into::into)
     }
     pub fn save_favorites(&self, request: SaveFavorites) -> Result<Favorites, ProjectError> {
-        self.store
-            .transaction(|tx| {
-                let current = read(tx)?;
-                if current.revision != request.expected_revision || current.revision == MAX_REVISION
-                {
-                    return Err(fail("revision_conflict"));
-                }
-                let mut value = Favorites {
-                    schema_version: 1,
-                    revision: current.revision + 1,
-                    folders: request.folders,
-                };
-                normalize(&mut value.folders)?;
-                let bytes = serde_json::to_vec(&value).map_err(|_| fail("invalid_document"))?;
-                tx.write("favorites.json", &bytes, |bytes| parse(bytes).map(|_| ()))?;
-                Ok(value)
-            })
-            .map_err(Into::into)
+        self.transaction(|tx| {
+            let current = read(tx)?;
+            if current.revision != request.expected_revision || current.revision == MAX_REVISION {
+                return Err(fail("revision_conflict"));
+            }
+            let mut value = Favorites {
+                schema_version: 1,
+                revision: current.revision + 1,
+                folders: request.folders,
+            };
+            normalize(&mut value.folders)?;
+            let bytes = serde_json::to_vec(&value).map_err(|_| fail("invalid_document"))?;
+            tx.write("favorites.json", &bytes, |bytes| parse(bytes).map(|_| ()))?;
+            Ok(value)
+        })
+        .map_err(Into::into)
     }
 }
 

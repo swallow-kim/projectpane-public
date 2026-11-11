@@ -31,6 +31,11 @@ export function createProjectClient(call: ProjectInvoke = invoke): ProjectClient
       if (result.project.id !== id) throw new ProjectIpcError('invalid_document'); return normalize(result); },
     async create(name, rootPath, workspace) { return normalize(await request('create_project', loaded, { name, rootPath: absoluteProjectPathSchema.parse(rootPath), preset: workspaceSchema.parse(workspace) })); },
     async duplicate(project, name) { return normalize(await request('duplicate_project', loaded, { projectId: project.id, expectedRevision: project.revision, name })); },
+    async edit(project, name, rootPath) {
+      const result = await request('edit_project', loaded, { projectId: project.id, expectedRevision: project.revision, name, rootPath: absoluteProjectPathSchema.parse(rootPath) });
+      if (result.project.id !== project.id) throw new ProjectIpcError('invalid_document');
+      return normalize(result);
+    },
     rename(project, name) { return request('rename_project', metadata, { projectId: project.id, expectedRevision: project.revision, name }); },
     async remove(project) { const result = await request('remove_project', z.strictObject({ removedProjectId: projectIdSchema }), { projectId: project.id, expectedRevision: project.revision });
       if (result.removedProjectId !== project.id) throw new ProjectIpcError('invalid_document'); },

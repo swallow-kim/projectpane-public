@@ -27,3 +27,17 @@ it('converts IPC faults into stable error codes without untrusted text', async (
   const client = createProjectClient(vi.fn<ProjectInvoke>().mockRejectedValue({ code: 'revision_conflict' }));
   await expect(client.load(project.id, 'session')).rejects.toThrow('revision_conflict');
 });
+
+it('edits name and root with revision checking and validates the returned project', async () => {
+  const invoke = vi.fn<ProjectInvoke>().mockResolvedValue({ ...loaded, project: { ...metadata, name: 'Edited', rootPath: 'D:\\New', revision: 1 } });
+  const client = createProjectClient(invoke);
+  expect((await client.edit(metadata, 'Edited', 'D:\\New')).project.rootPath).toBe('D:\\New');
+  expect(invoke).toHaveBeenCalledExactlyOnceWith('edit_project', { request: { projectId: metadata.id, expectedRevision: metadata.revision, name: 'Edited', rootPath: 'D:\\New' } });
+  invoke.mockResolvedValue({ ...loaded, project: { ...metadata, id: 'wrong' } });
+  await expect(client.edit(metadata, 'Edited', 'D:\\New')).rejects.toThrow('invalid_document');
+});
+it('rejects a relative project root before invoking the backend', async () => {
+  const invoke = vi.fn<ProjectInvoke>();
+  await expect(createProjectClient(invoke).edit(metadata, 'Edited', 'relative')).rejects.toThrow();
+  expect(invoke).not.toHaveBeenCalled();
+});

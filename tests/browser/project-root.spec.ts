@@ -66,3 +66,22 @@ test('unavailable root stays visible and reports an error instead of silently ch
   await expect(page.getByRole('region', { name: '패널 1', exact: true }).getByRole('alert')).toBeVisible();
   await expect(page.getByRole('region', { name: '패널 1', exact: true }).getByRole('tab', { selected: true })).toHaveAttribute('data-source', 'real');
 });
+
+test('editing the project root preserves open folders and makes new tabs use the edited root', async ({ page }) => {
+  await fixture(page);
+  await address(page).fill('C:\\Alpha\\nested'); await address(page).press('Enter');
+  await page.getByText('프로젝트 관리', { exact: true }).click();
+  await page.getByRole('button', { name: '프로젝트 편집', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: '루트 경로', exact: true })).toHaveValue('C:\\Alpha');
+  await page.getByRole('textbox', { name: '루트 경로', exact: true }).fill('D:\\Updated');
+  await page.getByRole('button', { name: '변경하기', exact: true }).click();
+  await expect(page.getByRole('tab', { name: 'Alpha', exact: true })).toBeEnabled();
+  await expect(address(page)).toHaveValue('C:\\Alpha\\nested');
+  await page.getByRole('button', { name: '2패널', exact: true }).click();
+  await expect(address(page, 2)).toHaveValue('D:\\Updated');
+  await address(page).press('Control+t');
+  await expect(address(page)).toHaveValue('D:\\Updated');
+  await page.getByRole('tab', { name: 'Beta', exact: true }).click();
+  await page.getByRole('tab', { name: 'Alpha', exact: true }).click();
+  await expect(address(page)).toHaveValue('D:\\Updated');
+});

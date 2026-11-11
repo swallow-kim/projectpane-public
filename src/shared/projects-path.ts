@@ -46,12 +46,18 @@ export const pathRefSchema = z.discriminatedUnion('kind', [
 ]).readonly();
 export type PathRef = z.infer<typeof pathRefSchema>;
 const asciiLower = (value: string) => value.replace(/[A-Z]/g, letter => letter.toLowerCase());
+// WSL filesystem components are case-sensitive. Fold only the Windows host name;
+// keeping the distribution name exact is conservative when deciding containment.
+function comparisonPath(value: string): string {
+  const wslHost = /^\\\\(?:wsl\$|wsl\.localhost)\\/i.exec(value);
+  return wslHost ? asciiLower(wslHost[0]) + value.slice(wslHost[0].length) : asciiLower(value);
+}
 export function toPathRef(root: string, target: string): PathRef {
   const base = normalizeAbsolutePath(root).replace(/\\$/, '');
   if (target === '') return { kind: 'empty', value: '' };
   const full = normalizeAbsolutePath(target).replace(/\\$/, '');
-  if (asciiLower(full) === asciiLower(base)) return { kind: 'relative', value: '' };
-  if (asciiLower(full).startsWith(asciiLower(base) + '\\')) return { kind: 'relative', value: full.slice(base.length + 1) };
+  if (comparisonPath(full) === comparisonPath(base)) return { kind: 'relative', value: '' };
+  if (comparisonPath(full).startsWith(comparisonPath(base) + '\\')) return { kind: 'relative', value: full.slice(base.length + 1) };
   return { kind: 'absolute', value: normalizeAbsolutePath(target) };
 }
 export function resolvePathRef(root: string, input: PathRef): string | null {

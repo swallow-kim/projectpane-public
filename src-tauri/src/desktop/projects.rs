@@ -2,6 +2,7 @@
 //! `list_projects()` -> `{projects: Metadata[], lastProjectId, warnings}`.
 //! `create_project({name,rootPath,preset})` -> Loaded.
 //! `load_project({projectId,source: "preset"|"session"})` -> Loaded.
+//! `edit_project({projectId,expectedRevision,name,rootPath})` -> Loaded.
 //! `rename_project({projectId,expectedRevision,name})` -> Metadata.
 //! `duplicate_project({projectId,expectedRevision,name})` -> Loaded.
 //! `remove_project({projectId,expectedRevision})` -> `{removedProjectId}`.
@@ -245,4 +246,13 @@ pub fn project_close_ready(
         return Err(ProjectError { code: "busy" });
     }
     complete_close(app, attempt, saved)
+}
+
+#[tauri::command]
+pub async fn edit_project(
+    window: WebviewWindow,
+    state: tauri::State<'_, DesktopProjects>,
+    request: EditRequest,
+) -> Result<Loaded, ProjectError> {
+    execute(window, state, |service| service.edit(request)).await
 }

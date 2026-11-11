@@ -27,6 +27,7 @@ fn main() {
             "create_project",
             "load_project",
             "rename_project",
+            "edit_project",
             "duplicate_project",
             "remove_project",
             "save_project_preset",

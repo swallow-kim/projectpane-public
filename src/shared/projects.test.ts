@@ -45,3 +45,25 @@ describe('P3 lexical paths', () => {
   it('resolves UNC relative targets', () => expect(resolvePathRef('\\\\host\\share', { kind: 'relative', value: 'src' })).toBe('\\\\host\\share\\src'));
   it('rejects traversal', () => expect(() => resolvePathRef('C:\\Example', { kind: 'relative', value: '..\\escape' })).toThrow());
 });
+
+
+describe('WSL project path case preservation', () => {
+  it.each(['wsl$', 'wsl.localhost'])('keeps case-distinct Linux folders absolute for %s', host => {
+    const root = `\\\\${host}\\Ubuntu\\home\\User`;
+    for (const target of [`\\\\${host}\\Ubuntu\\home\\user`, `\\\\${host}\\Ubuntu\\home\\user\\src`]) {
+      const ref = toPathRef(root, target);
+      expect(ref).toEqual({ kind: 'absolute', value: target });
+      expect(resolvePathRef(root, ref)).toBe(target);
+    }
+  });
+  it.each(['wsl$', 'wsl.localhost'])('preserves contained Linux component case for %s', host => {
+    const root = `\\\\${host}\\Ubuntu\\home\\User`;
+    expect(toPathRef(root, `${root}\\Src`)).toEqual({ kind: 'relative', value: 'Src' });
+    expect(toPathRef(root, root)).toEqual({ kind: 'relative', value: '' });
+    expect(toPathRef(root, `\\\\${host.toUpperCase()}\\Ubuntu\\home\\User\\Src`)).toEqual({ kind: 'relative', value: 'Src' });
+  });
+  it('retains case-insensitive Windows and ordinary UNC containment', () => {
+    expect(toPathRef('C:\\Root', 'c:\\root\\Src')).toEqual({ kind: 'relative', value: 'Src' });
+    expect(toPathRef('\\\\Server\\Share\\Root', '\\\\server\\share\\root\\Src')).toEqual({ kind: 'relative', value: 'Src' });
+  });
+});

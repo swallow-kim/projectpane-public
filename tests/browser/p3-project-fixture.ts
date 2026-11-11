@@ -70,6 +70,17 @@ export async function installProjects(page: Page, ephemeral = false, readOnly = 
           projects.set(id, { ...original, id, name: request.name, revision: 0 }); presets.set(id, preset);
           return load(id);
         }
+        if (command === 'edit_project' && request) {
+          const old = projects.get(request.projectId);
+          if (!old || old.revision !== request.expectedRevision) throw { code: 'revision_conflict' };
+          const rebase = (value: ReturnType<typeof workspace>) => ({ ...value, panes: value.panes.map(pane => ({ ...pane, tabs: pane.tabs.map(tab => ({ ...tab, path: tab.path.kind === 'relative' ? { kind: 'absolute', value: old.rootPath + (tab.path.value ? '\\' + tab.path.value : '') } : tab.path })) })) });
+          const preset = presets.get(old.id);
+          if (preset) presets.set(old.id, rebase(preset));
+          const session = sessions.get(old.id);
+          if (session) sessions.set(old.id, { revision: session.revision + 1, workspace: rebase(session.workspace) });
+          projects.set(old.id, { ...old, name: request.name, rootPath: request.rootPath, revision: old.revision + 1 });
+          return load(old.id);
+        }
         if ((command === 'rename_project' || command === 'save_project_preset') && request) {
           const old = projects.get(request.projectId);
           if (!old || old.revision !== request.expectedRevision) throw { code: 'revision_conflict' };

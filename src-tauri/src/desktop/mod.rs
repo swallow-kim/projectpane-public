@@ -59,6 +59,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             projects::create_project,
             projects::load_project,
             projects::rename_project,
+            projects::edit_project,
             projects::duplicate_project,
             projects::remove_project,
             projects::save_project_preset,

@@ -82,7 +82,7 @@ test('preset save, rename, duplicate and remove-list preserve folders and workin
   await page.getByRole('button', { name: '프리셋 저장하기', exact: true }).click();
   await expect(select).toBeEnabled();
   await page.getByRole('button', { name: '4패널', exact: true }).click();
-  await projectAction(page, '이름 변경');
+  await projectAction(page, '프로젝트 편집');
   await page.getByRole('textbox', { name: '프로젝트 이름', exact: true }).fill('Alpha renamed');
   await page.getByRole('button', { name: '변경하기', exact: true }).click();
   await expect(select).toBeEnabled();
@@ -137,7 +137,7 @@ test('recovered state blocks autosave and can be saved explicitly as a new proje
   await installProjects(page, false, true);
   await page.goto('/');
   await page.locator('.project-manager > summary').click();
-  await expect(page.getByRole('button', { name: '이름 변경', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '프로젝트 편집', exact: true })).toBeDisabled();
   await page.locator('.project-manager > summary').click();
   await page.getByRole('button', { name: '2패널', exact: true }).click();
   await page.getByRole('button', { name: '현재 상태를 새 프로젝트로 저장', exact: true }).click();

@@ -10,7 +10,7 @@ const p2Commands = [
 ];
 const projectCommands = [
   'list_favorites', 'save_favorites',
-  'list_projects', 'create_project', 'load_project', 'rename_project',
+  'list_projects', 'create_project', 'load_project', 'edit_project', 'rename_project',
   'duplicate_project', 'remove_project', 'save_project_preset',
   'save_project_session', 'project_close_ready',
 ];

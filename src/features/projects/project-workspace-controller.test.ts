@@ -11,7 +11,7 @@ function fixture() {
   const client: ProjectClient = {
     list: vi.fn(async () => ({ projects: [project], lastProjectId: project.id, warnings: [] })),
     load: vi.fn(async () => loaded), create: vi.fn(async () => loaded),
-    rename: vi.fn(async () => project), duplicate: vi.fn(async () => loaded), remove: vi.fn(async () => {}),
+    edit: vi.fn(async () => loaded), rename: vi.fn(async () => project), duplicate: vi.fn(async () => loaded), remove: vi.fn(async () => {}),
     savePreset: vi.fn(async () => project), saveSession: vi.fn(async (_project, revision) => revision + 1),
   };
   const apply = vi.fn();
@@ -122,5 +122,27 @@ it('does not hide an unrelated project load failure when autosave succeeds', asy
   expect(await controller.closeWithin(100)).toBe(true);
   expect(controller.state.error).toBe(error);
   expect(error).not.toBeNull();
+  controller.dispose();
+});
+
+it('flushes the old-root session before accepting an edited root and uses new metadata for future saves', async () => {
+  const { controller, client, loaded } = fixture();
+  await controller.initialize(false);
+  const pending = deferred<number>();
+  client.saveSession = vi.fn(() => pending.promise);
+  controller.changed({ ...loaded.workspace, columns: 61 });
+  const edited = { ...loaded, project: { ...loaded.project, rootPath: 'D:\\New', revision: 1 }, sessionRevision: 2 };
+  client.edit = vi.fn(async () => edited);
+  const editing = controller.mutate(project => client.edit(project!, 'Edited', 'D:\\New'));
+  await Promise.resolve();
+  expect(client.edit).not.toHaveBeenCalled();
+  expect(controller.state.selected?.rootPath).toBe(loaded.project.rootPath);
+  pending.resolve(1);
+  await editing;
+  expect(controller.state.selected).toEqual(edited.project);
+  client.saveSession = vi.fn(async (_project, revision) => revision + 1);
+  controller.changed({ ...edited.workspace, columns: 62 });
+  await controller.closeWithin(100);
+  expect(client.saveSession).toHaveBeenCalledWith(edited.project, 2, expect.anything());
   controller.dispose();
 });

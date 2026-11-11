@@ -73,6 +73,14 @@ pub struct NameRequest {
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct EditRequest {
+    pub project_id: String,
+    pub expected_revision: u64,
+    pub name: String,
+    pub root_path: String,
+}
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct RemoveRequest {
     pub project_id: String,
     pub expected_revision: u64,

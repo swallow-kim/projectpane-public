@@ -73,19 +73,21 @@ impl Transaction<'_> {
     }
 
     fn path(&self, name: &str) -> io::Result<PathBuf> {
-        let valid = matches!(name, "manifest.json" | "settings.json" | "favorites.json")
-            || [".project.json", ".session.json"].iter().any(|suffix| {
-                name.strip_suffix(suffix).is_some_and(|id| {
-                    id.len() == 36
-                        && id.bytes().enumerate().all(|(i, byte)| {
-                            if [8, 13, 18, 23].contains(&i) {
-                                byte == b'-'
-                            } else {
-                                byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()
-                            }
-                        })
-                })
-            });
+        let valid = matches!(
+            name,
+            "manifest.json" | "settings.json" | "favorites.json" | "root-edit.json"
+        ) || [".project.json", ".session.json"].iter().any(|suffix| {
+            name.strip_suffix(suffix).is_some_and(|id| {
+                id.len() == 36
+                    && id.bytes().enumerate().all(|(i, byte)| {
+                        if [8, 13, 18, 23].contains(&i) {
+                            byte == b'-'
+                        } else {
+                            byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()
+                        }
+                    })
+            })
+        });
         if !valid {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,

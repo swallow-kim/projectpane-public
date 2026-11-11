@@ -3,6 +3,7 @@ mod documents;
 mod favorites;
 use super::id;
 pub use favorites::{Favorite, Favorites, SaveFavorites};
+mod editing;
 mod loading;
 mod mutations;
 
@@ -18,6 +19,16 @@ pub struct ProjectService {
     store: ProjectStore,
 }
 impl ProjectService {
+    fn transaction<T>(
+        &self,
+        operation: impl FnOnce(&crate::persistence::projects::Transaction<'_>) -> std::io::Result<T>,
+    ) -> std::io::Result<T> {
+        self.store.transaction(|tx| {
+            editing::recover(tx)?;
+            operation(tx)
+        })
+    }
+
     pub const fn new(store: ProjectStore) -> Self {
         Self { store }
     }
