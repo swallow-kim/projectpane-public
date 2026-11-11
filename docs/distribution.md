@@ -1,6 +1,6 @@
 # Windows 배포와 업데이트
 
-현재 소스와 공개 배포 버전은 1.4.0입니다. 2026-11-09 게시한 Windows x64 설치 파일, updater 서명, 버전 feed와 SHA256은 [1.4.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.4.0)에서 제공합니다. [최종 패키지·배포 검증](release-1.4.0-validation.md)에서 정확한 제품 커밋과 해시, 공개 다운로드 검증 결과를 확인하세요. 서명·격리 업데이트 검증이 완료되기 전의 로컬 설치파일은 정식 배포물이 아닙니다.
+현재 소스와 공개 배포 버전은 1.5.0입니다. 2026-11-11 게시한 Windows x64 설치 파일, updater 서명, 버전 feed와 SHA256은 [1.5.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.0)에서 제공합니다. [최종 패키지·배포 검증](release-1.5.0-validation.md)에서 정확한 제품 커밋과 해시, 공개 다운로드 검증 결과를 확인하세요. 서명·격리 업데이트 검증이 완료되기 전의 로컬 설치파일은 정식 배포물이 아닙니다.
 
 ## 설치형과 ZIP판
 
@@ -27,12 +27,12 @@ worker는 Cargo의 추가 실행 파일로 패키지에 한 번 포함합니다.
 - package/Cargo/Tauri/lockfile 버전, EXE·worker·설치파일의 출처와 SHA256을 맞춥니다.
 - updater 서명과 서명 안의 버전을 검증하고 변조·다운그레이드·다운로드 실패 시 설치가 시작되지 않는지 확인합니다.
 - 격리 데이터로 저장 ACK, 파일 작업 종료, worker 종료, 설치 인계 및 재시작 복원을 확인합니다. 실제 개인 설치본 시험과 구분합니다.
-- [MIT](../LICENSE), [제3자 고지](../THIRD_PARTY_NOTICES.md), [의존성 목록](dependency-licenses-1.4.0.md), [라이선스 원문](third-party-license-texts.md)과 추가 구성요소 고지를 설치 폴더의 `licenses`에 포함합니다.
+- [MIT](../LICENSE), [제3자 고지](../THIRD_PARTY_NOTICES.md), [의존성 목록](dependency-licenses-1.5.0.md), [라이선스 원문](third-party-license-texts.md)과 추가 구성요소 고지를 설치 폴더의 `licenses`에 포함합니다.
 - 바이너리에 개인 빌드 경로·비밀정보가 없는지 검사하고 PDB·개인 로그를 제외합니다. README·사용자 안내·검증 범위·알려진 제한을 동기화합니다.
 - 공개 SHA, 자산 해시, 익명 다운로드, feed와 자산의 대응을 확인합니다. 실패한 검사나 미검증 환경을 통과로 바꾸지 않습니다.
 
 현재 공개 저장소에는 Actions workflow가 없습니다. 로컬 빌드와 기존 인증의 수동 게시를 사용하며 CI 통과를 주장하지 않습니다. 별도 비공개 저장소의 과거 CI 결제 제한은 코드 실패나 이 공개 저장소의 CI 결과가 아닙니다.
 
-## 1.4.0 검증 경계
+## 1.5.0 검증 경계
 
 대용량 복사 구현과 실제 실행 결과는 [검증 기록](large-copy-validation-20261109.md)에 구분합니다. 실제 원격 NAS 시험은 없으며 Explorer 물리 입력·클립보드 왕복은 네이티브 입력/클립보드 접근 제한으로 완료하지 못했습니다. ADS가 있는 파일은 ADS 미지원 대상으로 해당 파일을 만들기 전에 거부합니다. 지원하지 않는 특수 파일·재분석 지점에는 대체 복사를 하지 않습니다. 이러한 제한은 설치 패키지 생성만으로 해소되지 않습니다.

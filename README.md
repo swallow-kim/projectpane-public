@@ -2,7 +2,7 @@
 
 Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝트별 폴더와 화면 구성을 저장하고 여러 폴더에서 기본 파일 작업을 수행합니다.
 
-현재 소스 버전은 **1.4.0**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-09 게시한 [1.4.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.4.0)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
+현재 소스 버전은 **1.5.0**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-11 게시한 [1.5.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.0)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
 
 ## 기능
 
@@ -17,6 +17,12 @@ Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝�
 - 업데이트 버튼과 시작 후 하루 한 번 확인. 설치형은 사용자 선택으로 다운로드·서명 검증·설치·재시작하며, ZIP은 다운로드 안내만 제공합니다.
 
 자세한 동작과 단축키는 [사용·복구 안내](docs/user-guide.md), 기능별 변경은 [변경 내역](CHANGELOG.md)을 참고하세요.
+
+## 1.5.0 프로젝트 루트 편집
+
+프로젝트 관리의 **프로젝트 편집**에서 이름과 루트 경로를 수정합니다. 새 탭과 빈 패널은 루트에서 열리고 주소창 상대경로와 상대경로 복사도 프로젝트 루트 기준입니다. 기존 탭·프리셋의 실제 폴더 위치는 유지하며 파일을 이동하지 않습니다. WSL 경로 대소문자와 중단된 설정 변경의 복구를 보강했습니다.
+
+[1.5.0 패키지·배포 검증](docs/release-1.5.0-validation.md)을 참고하세요.
 
 ## 1.4.0 복사와 목록 응답 개선
 
@@ -67,6 +73,6 @@ Windows 산출 경로는 src-tauri/target/release/bundle/nsis/입니다. 빌드�
 - [사용·복구 안내](docs/user-guide.md)
 - [아키텍처](docs/architecture.md), [UI 규칙](docs/design-system.md), [후속 단계](docs/post-v1-phases.md)
 - [MIT 라이선스](LICENSE), [제3자 고지](THIRD_PARTY_NOTICES.md)
-- [의존성 목록](docs/dependency-licenses-1.4.0.md), [원문 고지 모음](docs/third-party-license-texts.md)
+- [의존성 목록](docs/dependency-licenses-1.5.0.md), [원문 고지 모음](docs/third-party-license-texts.md)
 
 ProjectPane 소유 코드·문서는 MIT입니다. 제3자 코드·아이콘·SDK·설치 도구에는 각각의 원래 조건이 적용됩니다.
