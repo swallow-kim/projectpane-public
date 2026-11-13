@@ -11,7 +11,10 @@ button { border-radius: 4px; }
 button svg { display: block; flex: none; stroke-width: 1.65; }
 button:disabled { opacity: .42; }
 main { padding: 4px 6px; gap: 4px; }
-.app-header { gap: 8px; min-height: 28px; }
+.app-header { gap: 4px 8px; min-height: 28px; min-width: 0; flex-wrap: wrap; }
+.app-header > :not(h1):not(dialog) { flex-shrink: 0; min-width: 0; max-width: 100%; }
+.app-header > button, .app-header .layout-toolbar button { white-space: nowrap; }
+.app-header .operation-tray { overflow-wrap: anywhere; }
 .app-header h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .layout-toolbar { order: -1; }
 .layout-toolbar button, .favorites-manage { min-height: 26px; padding: 3px 7px; font-size: 12px; }
