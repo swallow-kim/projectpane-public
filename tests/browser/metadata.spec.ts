@@ -17,7 +17,7 @@ test('shows readable file types and local modified dates with aligned scrollable
   });
   await page.goto('/');
   const pane = page.getByRole('region', { name: '패널 1', exact: true });
-  await expect(pane.locator('.column-heading span')).toHaveText(['이름', '유형', '크기', '수정한 날짜']);
+  await expect(pane.locator('.column-heading > span')).toHaveText(['이름', '유형', '크기', '수정한 날짜']);
   const rows = pane.getByRole('listbox').getByRole('option');
   await expect(rows.nth(0).locator('.size')).toHaveText('1.5 KiB');
   await expect(rows.nth(1).locator('.size')).toHaveText('—');

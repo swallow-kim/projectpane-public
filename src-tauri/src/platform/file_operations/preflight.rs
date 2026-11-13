@@ -156,6 +156,9 @@ pub fn check_plan(plan: &OperationPlan) -> Result<(), Fault> {
             }
         }
         PreparedAction::Recycle { sources } => super::recycle::check(sources)?,
+        PreparedAction::RecycleBatch { roots, descendants } => {
+            super::folder_recycle::check_batch(roots, descendants)?;
+        }
         PreparedAction::RecycleTree { root, descendants } => {
             super::FolderRecycleSnapshot::from_prepared(root, descendants)?;
         }

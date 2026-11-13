@@ -103,7 +103,8 @@ impl OperationPreview {
                 sources.iter().map(|item| item.path.clone()).collect(),
                 Some(destination.path.clone().into()),
             ),
-            PreparedAction::Recycle { sources } => (
+            PreparedAction::Recycle { sources }
+            | PreparedAction::RecycleBatch { roots: sources, .. } => (
                 OperationKind::Recycle,
                 sources.iter().map(|item| item.path.clone()).collect(),
                 None,

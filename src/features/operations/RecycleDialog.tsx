@@ -53,8 +53,9 @@ export function RecycleDialog({ draft, projectId, close, submitted }: {
     onCompositionStart={() => { composing.current = true; }}
     onCompositionEnd={() => { composing.current = false; settling.current = true; }}>
     <h2 id={`${id}-title`}>휴지통</h2>
-    <p id={`${id}-scope`}>고정 드라이브의 일반 파일만 휴지통으로 보냅니다. 폴더·링크·이동식 및 네트워크 드라이브는 지원하지 않습니다.</p>
+    <p id={`${id}-scope`}>고정 드라이브의 파일과 폴더를 휴지통으로 보냅니다. 폴더 안의 항목도 함께 이동합니다. 링크·이동식 및 네트워크 드라이브는 지원하지 않으며, 휴지통을 사용할 수 없으면 삭제하지 않습니다.</p>
     <p>한 번에 최대 1,024개를 선택할 수 있습니다. 경로 길이와 결과 기록 용량에 따라 더 적은 수에서 제한될 수 있습니다.</p>
+    <p>확인부터 작업 완료까지 다른 앱에서 원본 폴더와 내용을 변경하지 마세요.</p>
     {preview ? <>
       <p>아래 원본을 확인한 뒤 휴지통으로 보내세요.</p>
       <dl className="operation-paths" tabIndex={0} aria-label="휴지통 원본 목록"><dt>원본 {preview.sources.length}개</dt>

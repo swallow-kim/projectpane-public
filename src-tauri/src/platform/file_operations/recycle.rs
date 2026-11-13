@@ -93,6 +93,17 @@ impl RecycleProgress {
                     .map_err(|_| windows::core::Error::from(E_ABORT))?;
                 AuthorizedRecycle::File(actual)
             }
+            PreparedAction::RecycleBatch { roots, descendants } if roots.contains(&actual) => {
+                if actual.kind == EntryKind::Folder {
+                    let snapshot = super::folder_recycle::batch_folder(&actual, descendants)
+                        .map_err(|_| windows::core::Error::from(E_ABORT))?;
+                    AuthorizedRecycle::Folder(snapshot)
+                } else {
+                    check(std::slice::from_ref(&actual))
+                        .map_err(|_| windows::core::Error::from(E_ABORT))?;
+                    AuthorizedRecycle::File(actual)
+                }
+            }
             PreparedAction::RecycleTree { root, descendants } if root == &actual => {
                 let snapshot = FolderRecycleSnapshot::from_prepared(root, descendants)
                     .map_err(|_| windows::core::Error::from(E_ABORT))?;

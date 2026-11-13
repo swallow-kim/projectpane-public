@@ -133,7 +133,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
   const canNavigate = desktop && !synthetic;
   const filesReady = canNavigate && fileActionsAvailable && !composing && !selectionPending && !listing.state.viewPending && ['complete', 'capped'].includes(listing.state.status);
   const focusedEntry = listing.cache.row(location.position.focusedIndex);
-  const recycleEligible = !focusedEntry || !location.position.selected.has(focusedEntry.id) || focusedEntry.kind === 'file';
+  const recycleEligible = !focusedEntry || !location.position.selected.has(focusedEntry.id) || ['file', 'folder'].includes(focusedEntry.kind);
   const captureSelection = (draggedId?: string) => {
     const selected = draggedId && !location.position.selected.has(draggedId) ? [draggedId] : [...location.position.selected];
     if (!filesReady || composition.current || !selected.length) return null;
@@ -156,7 +156,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
   const requestFileAction = (kind: FileActionKind) => {
     if (!filesReady || composition.current || (kind === 'recycle' && !recycleEligible)) return;
     try {
-      if (kind !== 'copy' && kind !== 'new_folder' && location.position.selected.size > 1024) { setTabNotice('이 작업은 한 번에 최대 1,024개를 지원합니다. 선택을 줄여 다시 시도하세요.'); return; }
+      if (kind !== 'copy' && kind !== 'move' && kind !== 'new_folder' && location.position.selected.size > 1024) { setTabNotice('이 작업은 한 번에 최대 1,024개를 지원합니다. 선택을 줄여 다시 시도하세요.'); return; }
       if (kind === 'new_folder') listing.operationIdentity(tab.id, location.path);
       const selection = kind === 'new_folder' ? null : captureSelection();
       if (kind !== 'new_folder' && !selection) return;
@@ -217,13 +217,13 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
         menuActions={canNavigate ? [
           { label: '열기', disabled: !filesReady || location.position.selected.size !== 1, run: () => { if (location.position.focusedId) nav.activate(location.position.focusedId); } },
           { label: '탐색기에서 선택 항목 보기', disabled: !filesReady || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('reveal') },
-          { label: 'Windows 메뉴 (시험)', description: 'Windows가 처리하는 메뉴입니다. 앱 작업 기록과 복구 기능은 적용되지 않습니다.', disabled: !filesReady || transfer?.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('context_menu') },
+          { label: 'Windows 메뉴', description: 'Windows가 처리하는 메뉴입니다. 앱 작업 기록과 복구 기능은 적용되지 않습니다.', disabled: !filesReady || transfer?.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('context_menu') },
           { label: '절대경로 복사', description: '선택 항목의 전체 경로를 텍스트로 복사합니다. 여러 항목은 한 줄씩 복사합니다.', disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('absolute_path') },
           { label: projectRoot ? '상대경로 복사 (프로젝트 루트 기준)' : '상대경로 복사 (현재 폴더 기준)', description: `${projectRoot ? '프로젝트 루트' : '현재 패널 폴더'} 기준: ${projectRoot ?? location.path} · 여러 항목은 한 줄씩 복사합니다.`, disabled: !filesReady || !location.path || !transfer || transfer.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('relative_path') },
           { label: 'Windows에 복사', disabled: !filesReady || !location.position.selected.size, run: () => nativeAction('clipboard') },
           { label: 'Windows에서 붙여넣기', disabled: !filesReady, run: () => nativeAction('system-paste') },
           { label: '복사 담기', disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size, run: () => transferAction('copy') },
-          { label: '잘라내기', disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size || location.position.selected.size > 1024, run: () => transferAction('move') },
+          { label: '잘라내기', disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size, run: () => transferAction('move') },
           { label: '앱에 붙여넣기', disabled: !filesReady || !transfer?.clipboard || transfer.busy, run: () => transferAction('paste') },
           { label: '압축하기…', disabled: !filesReady || !location.position.selected.size || location.position.selected.size > 1024, run: () => requestFileAction('compress') },
           ...(/\.(zip|7z|rar|tar|gz|bz2|xz|tgz|egg|alz)$/i.test(listing.cache.row(location.position.focusedIndex)?.name ?? '') && location.position.selected.size === 1 ? [{ label: '압축 해제…', disabled: !filesReady, run: () => requestFileAction('extract') }] : []),

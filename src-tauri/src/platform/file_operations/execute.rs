@@ -88,7 +88,8 @@ impl Apartment {
             }
             PreparedAction::Copy { sources, .. }
             | PreparedAction::Move { sources, .. }
-            | PreparedAction::Recycle { sources } => sources.len(),
+            | PreparedAction::Recycle { sources }
+            | PreparedAction::RecycleBatch { roots: sources, .. } => sources.len(),
             PreparedAction::NewFolder { .. }
             | PreparedAction::RecycleTree { .. }
             | PreparedAction::Rename { .. }
@@ -158,7 +159,9 @@ impl Apartment {
                 | FOF_SILENT;
             if matches!(
                 plan.action,
-                PreparedAction::Recycle { .. } | PreparedAction::RecycleTree { .. }
+                PreparedAction::Recycle { .. }
+                    | PreparedAction::RecycleTree { .. }
+                    | PreparedAction::RecycleBatch { .. }
             ) {
                 flags |= FOFX_RECYCLEONDELETE | FOF_WANTNUKEWARNING;
             }
@@ -271,7 +274,8 @@ unsafe fn enqueue(
                 }
                 Ok(())
             }
-            PreparedAction::Recycle { sources } => {
+            PreparedAction::Recycle { sources }
+            | PreparedAction::RecycleBatch { roots: sources, .. } => {
                 for source in sources {
                     operation.DeleteItem(&item(&source.path)?, None)?;
                 }

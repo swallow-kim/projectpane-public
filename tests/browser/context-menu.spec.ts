@@ -30,7 +30,7 @@ test('keyboard menu supports navigation, escape and focus restoration', async ({
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('menuitem', { name: '탐색기에서 선택 항목 보기', exact: true })).toBeFocused();
   await page.keyboard.press('ArrowDown');
-  await expect(page.getByRole('menuitem', { name: 'Windows 메뉴 (시험)', exact: true })).toBeFocused();
+  await expect(page.getByRole('menuitem', { name: 'Windows 메뉴', exact: true })).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('menuitem', { name: '절대경로 복사', exact: true })).toBeFocused();
   await page.keyboard.press('ArrowDown');

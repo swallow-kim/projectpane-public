@@ -49,7 +49,7 @@ pub(super) fn prepare(
         OperationAction::Move { destination, .. } => {
             transfer_action(TransferMode::Move, sources, &destination)?
         }
-        OperationAction::Recycle { .. } => PreparedAction::Recycle { sources },
+        OperationAction::Recycle { .. } => super::folder_recycle::prepare(sources)?,
     };
     let plan = OperationPlan {
         project_id: request.project_id,

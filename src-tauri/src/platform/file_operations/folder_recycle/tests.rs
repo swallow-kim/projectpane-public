@@ -151,3 +151,108 @@ fn relocation_evidence_requires_root_children_and_original_absence() {
         assert_eq!(fs::read(preserved).unwrap(), b"preserved payload");
     }
 }
+
+#[test]
+fn batch_preparation_captures_files_and_multiple_folders_and_rejects_stale_descendants() {
+    let fixture = tempfile::tempdir().unwrap();
+    let first = fixture.path().join("first.txt");
+    let one = fixture.path().join("one");
+    let two = fixture.path().join("two");
+    fs::write(&first, b"file").unwrap();
+    fs::create_dir_all(one.join("nested")).unwrap();
+    fs::create_dir(&two).unwrap();
+    fs::write(one.join("nested/child"), b"nested").unwrap();
+    let sources: Vec<_> = [&first, &one, &two]
+        .into_iter()
+        .map(|path| capture_source(path.to_str().unwrap()).unwrap())
+        .collect();
+    let action = prepare(sources.clone()).unwrap();
+    let plan = OperationPlan {
+        project_id: None,
+        action,
+    };
+    assert!(
+        matches!(&plan.action, PreparedAction::RecycleBatch { roots, descendants } if roots.len() == 3 && descendants.len() == 2)
+    );
+    super::super::check_plan(&plan).unwrap();
+    fs::write(two.join("new-child"), b"late").unwrap();
+    assert!(super::super::check_plan(&plan).is_err());
+    assert_eq!(fs::read(first).unwrap(), b"file");
+    assert_eq!(fs::read(one.join("nested/child")).unwrap(), b"nested");
+    assert!(
+        prepare(vec![
+            sources[1].clone(),
+            capture_source(one.join("nested").to_str().unwrap()).unwrap()
+        ])
+        .is_err()
+    );
+}
+
+#[test]
+fn batch_preparation_preserves_file_only_compatibility_and_rejects_invalid_roots() {
+    let fixture = tempfile::tempdir().unwrap();
+    let file = fixture.path().join("file");
+    fs::write(&file, b"keep").unwrap();
+    let source = capture_source(file.to_str().unwrap()).unwrap();
+    assert!(matches!(
+        prepare(vec![source.clone()]).unwrap(),
+        PreparedAction::Recycle { .. }
+    ));
+    let mut nonlocal = capture_source(fixture.path().to_str().unwrap()).unwrap();
+    nonlocal.path = r"\\server\share\folder".into();
+    assert!(check_root(&nonlocal).is_err());
+    let mut bin = nonlocal;
+    bin.path = r"C:\$Recycle.Bin\folder".into();
+    assert!(check_root(&bin).is_err());
+    let duplicate = OperationPlan {
+        project_id: None,
+        action: prepare(vec![source.clone(), source]).unwrap(),
+    };
+    assert!(super::super::check_plan(&duplicate).is_err());
+}
+
+#[test]
+fn recycle_request_prepares_single_and_mixed_folder_selections_without_deleting() {
+    use crate::domain::{ActivationKind, ActivationTarget, Identity};
+    let fixture = tempfile::tempdir().unwrap();
+    let folder = fixture.path().join("folder");
+    let file = fixture.path().join("file");
+    fs::create_dir(&folder).unwrap();
+    fs::write(folder.join("child"), b"nested").unwrap();
+    fs::write(&file, b"file").unwrap();
+    for mixed in [false, true] {
+        let mut targets = vec![ActivationTarget {
+            path: folder.to_str().unwrap().into(),
+            kind: ActivationKind::Folder,
+        }];
+        if mixed {
+            targets.push(ActivationTarget {
+                path: file.to_str().unwrap().into(),
+                kind: ActivationKind::File,
+            });
+        }
+        let request = PrepareOperation {
+            project_id: None,
+            action: OperationAction::Recycle {
+                selection: OperationSelection {
+                    identity: Identity {
+                        pane: 0,
+                        tab_id: "tab-1".into(),
+                        request_id: "request-1".into(),
+                        generation: 1,
+                    },
+                    entry_ids: (0..targets.len())
+                        .map(|index| format!("entry-{index}"))
+                        .collect(),
+                },
+            },
+        };
+        let plan = super::super::prepare::prepare(request, targets).unwrap();
+        assert!(
+            matches!(&plan.action, PreparedAction::RecycleBatch { roots, .. } if roots.len() == if mixed { 2 } else { 1 })
+        );
+        super::super::check_plan(&plan).unwrap();
+        assert_eq!(fs::read(folder.join("child")).unwrap(), b"nested");
+        assert_eq!(fs::read(&file).unwrap(), b"file");
+    }
+}

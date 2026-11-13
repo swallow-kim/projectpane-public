@@ -28,7 +28,7 @@ test('right click keeps the app menu; Shell integration is an explicit action wi
   await list(page).getByRole('option').first().click({ button: 'right' });
   expect(await calls(page, 'export_to_explorer')).toHaveLength(0);
   await expect(page.getByRole('menuitem', { name: '이름 변경', exact: true })).toBeDisabled();
-  const shell = page.getByRole('menuitem', { name: 'Windows 메뉴 (시험)', exact: true });
+  const shell = page.getByRole('menuitem', { name: 'Windows 메뉴', exact: true });
   await expect(shell).toHaveAttribute('title', /앱 작업 기록과 복구 기능은 적용되지 않습니다/);
   await shell.click();
   await expect(page.locator('.transfer-status')).toContainText('Windows 메뉴의 명령을 전달했습니다');
@@ -39,7 +39,7 @@ test('right click keeps the app menu; Shell integration is an explicit action wi
 test('Shell cancellation does not claim success, clear selection or replay the action', async ({ page }) => {
   await setup(page, 'cancelled');
   await list(page).getByRole('option').first().click({ button: 'right' });
-  await page.getByRole('menuitem', { name: 'Windows 메뉴 (시험)', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Windows 메뉴', exact: true }).click();
   await expect(page.locator('.transfer-status')).toContainText('Windows 메뉴를 취소했습니다');
   await expect(list(page).getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
   expect(await calls(page, 'export_to_explorer')).toHaveLength(1);
@@ -49,7 +49,7 @@ test('Shell cancellation does not claim success, clear selection or replay the a
 test('a Shell error keeps the normal menu and explicit Explorer fallback available without retry', async ({ page }) => {
   await setup(page, 'failed');
   await list(page).getByRole('option').first().click({ button: 'right' });
-  await page.getByRole('menuitem', { name: 'Windows 메뉴 (시험)', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Windows 메뉴', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('명령이 실행됐는지 확인');
   expect(await calls(page, 'export_to_explorer')).toHaveLength(1);
   await list(page).getByRole('option').first().click({ button: 'right' });

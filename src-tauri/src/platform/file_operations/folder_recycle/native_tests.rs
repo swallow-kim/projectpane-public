@@ -141,3 +141,92 @@ async fn real_folder_recycle_preserves_nested_identities_hashes_and_sentinel() {
     )
     .unwrap();
 }
+
+#[tokio::test]
+#[ignore = "requires fresh PROJECTPANE_RECYCLE_BATCH_FIXTURE; recycles only owned fixture contents"]
+async fn real_mixed_recycle_batch_preserves_nested_hashes_and_sentinel() {
+    let fixture = std::path::PathBuf::from(
+        std::env::var_os("PROJECTPANE_RECYCLE_BATCH_FIXTURE").expect("explicit owned fixture"),
+    );
+    assert!(fixture.is_absolute() && !fixture.exists());
+    assert!(
+        fixture
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .starts_with("p4-folder-recycle-")
+    );
+    assert!(
+        !fixture
+            .components()
+            .any(|part| part == std::path::Component::ParentDir)
+    );
+    capture_source(fixture.parent().unwrap().to_str().unwrap()).unwrap();
+    fs::create_dir(&fixture).unwrap();
+    let file = fixture.join("file.txt");
+    let first = fixture.join("first");
+    let second = fixture.join("second");
+    fs::create_dir_all(first.join("nested/empty")).unwrap();
+    fs::create_dir(&second).unwrap();
+    fs::write(&file, b"file payload").unwrap();
+    fs::write(first.join("nested/child"), b"nested payload").unwrap();
+    fs::write(fixture.join("sentinel"), b"untouched").unwrap();
+    let sources = [&file, &first, &second]
+        .into_iter()
+        .map(|p| capture_source(p.to_str().unwrap()).unwrap())
+        .collect();
+    let operation = OperationPlan {
+        project_id: None,
+        action: prepare(sources).unwrap(),
+    };
+    let lane = NativeFileOperationLane::start().unwrap();
+    let cancelled = lane
+        .execute(operation.clone(), 0, Arc::new(AtomicBool::new(true)))
+        .await
+        .unwrap();
+    assert_eq!(cancelled.status(), OperationStatus::Cancelled);
+    assert!(file.exists() && first.exists() && second.exists());
+    fs::write(second.join("late"), b"late").unwrap();
+    assert!(
+        lane.execute(operation.clone(), 0, Arc::new(AtomicBool::new(false)))
+            .await
+            .is_err()
+    );
+    assert_eq!(fs::read(&file).unwrap(), b"file payload");
+    fs::rename(second.join("late"), fixture.join("held")).unwrap();
+    let result = lane
+        .execute(operation, 0, Arc::new(AtomicBool::new(false)))
+        .await;
+    lane.shutdown().await.unwrap();
+    fs::write(
+        fixture.join("native-result.json"),
+        serde_json::to_vec_pretty(&result).unwrap(),
+    )
+    .unwrap();
+    let report = result.unwrap();
+    assert_eq!(report.status(), OperationStatus::Succeeded, "{report:?}");
+    assert_eq!(report.counts.changed, 3);
+    assert!(report.evidence.outcomes_complete);
+    assert!(!file.exists() && !first.exists() && !second.exists());
+    assert_eq!(report.items.len(), 3);
+    let mut verified = 0;
+    for item in &report.items {
+        let destination = Path::new(item.destination.as_ref().unwrap());
+        if item.source.eq_ignore_ascii_case(file.to_str().unwrap()) {
+            verified += 1;
+            assert_eq!(fs::read(destination).unwrap(), b"file payload");
+        }
+        if item.source.eq_ignore_ascii_case(first.to_str().unwrap()) {
+            verified += 1;
+            assert_eq!(
+                fs::read(destination.join("nested/child")).unwrap(),
+                b"nested payload"
+            );
+            assert!(destination.join("nested/empty").is_dir());
+        }
+    }
+    assert_eq!(verified, 2);
+    assert_eq!(fs::read(fixture.join("sentinel")).unwrap(), b"untouched");
+    assert_eq!(fs::read(fixture.join("held")).unwrap(), b"late");
+}

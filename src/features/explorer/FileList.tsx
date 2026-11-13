@@ -14,6 +14,7 @@ import { FileContextMenu, type FileMenuAction } from './FileContextMenu';
 import { useMarquee } from './use-marquee';
 import './marquee.css';
 import { filterTypingKey } from './filter-typing';
+import { ColumnHeading, useColumnWidths } from './ColumnHeading';
 
 export function FileList({ pane, visible, synthetic, listing, composing, position, onPosition, onActivate, transfer, nativeTransfer, beginPointerDrag, beginDrag, canDrop, endDrag, drop, onSelectionPending, menuActions, cancelTransfer, typeFilter }: {
   readonly typeFilter?: (key: string) => boolean;
@@ -36,6 +37,7 @@ export function FileList({ pane, visible, synthetic, listing, composing, positio
   readonly onPosition: (update: PositionUpdate) => void;
   readonly onActivate: (entryId: string) => void;
 }) {
+  const columns = useColumnWidths(pane);
   const scroller = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const closeMenu = useCallback(() => { setMenu(null); scroller.current?.focus({ preventScroll: true }); }, []);
@@ -71,8 +73,8 @@ export function FileList({ pane, visible, synthetic, listing, composing, positio
   }, [firstEntry, count, onPosition, position]);
   const activate = (id: string) => { if (!synthetic && !composing() && !selection.pending && !listing.state.viewPending && !listing.state.refreshing) onActivate(id); };
 
-  return <><div className="listing-table">
-    <div className="column-heading marquee-heading"><span>이름</span><span>유형</span><span>크기</span><span title="PC 현지 시간">수정한 날짜</span></div>
+  return <><div className="listing-table" style={columns.style}>
+    <ColumnHeading widths={columns.widths} change={columns.change} />
     <div ref={scroller} className="file-list marquee-list" data-marquee={marquee.active} role="listbox" aria-label={`패널 ${pane + 1} 파일 목록`}
       onBlur={() => marquee.cancel()}
       onPointerMove={marquee.move} onPointerUp={marquee.up} onPointerCancel={() => marquee.cancel()} onLostPointerCapture={() => marquee.cancel()}

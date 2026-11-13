@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { FileActionDraft, OperationSelection, TransferMode, TransferPreview } from '../../shared/operations';
 import { captureTransfer, clipboardSequence, exportToExplorer, operationError, type ExplorerExportAction } from './operation-client';
 import { trackPointerTransfer } from './pointer-transfer';
-import { toFaultCode } from '../../shared/fault';
+import { canFallbackToCopy, copyFallbackNotice } from './cut-fallback';
+import { IpcFault, toFaultCode } from '../../shared/fault';
 
 export const INTERNAL_TRANSFER = 'application/x-projectpane-transfer';
 
@@ -45,9 +46,10 @@ export function useFileTransfer(projectId: string | null, open: (draft: FileActi
   const drag = useRef<{ token: string; selection: OperationSelection } | null>(null);
   const cancelPointer = useRef<(() => void) | null>(null);
   const cutSequence = useRef<number | null>(null);
+  const copyFallback = useRef<TransferPreview | undefined>(undefined);
   useEffect(() => {
     generation.current++; if (copyCapture.current) void discardCopyCapture(copyCapture.current).catch(() => {}); copyCapture.current = null; setClipboard(null); setError(null); setNotice(null); drag.current = null;
-    cutSequence.current = null;
+    cutSequence.current = null; copyFallback.current = undefined;
     return () => { generation.current++; cancelPointer.current?.(); if (copyCapture.current) void discardCopyCapture(copyCapture.current).catch(() => {}); copyCapture.current = null; };
   }, [projectId]);
   const copyFailure = (error: unknown) => dispatchUncertain.current
@@ -55,10 +57,9 @@ export function useFileTransfer(projectId: string | null, open: (draft: FileActi
     : `${stageRef.current ?? '파일 요청'}: ${operationError(error)}`;
   const capture = async (mode: TransferMode, selection: OperationSelection, destination?: string) => {
     if (pending.current) { setError(`현재 ${stage ?? '파일 요청'} 처리 중입니다. 완료 후 다시 시도하거나 항목 수집을 취소하세요.`); return; }
-    if (mode === 'move' && selection.entryIds.length > 1024) { setError('이동은 한 번에 최대 1,024개를 지원합니다. 복사를 사용하거나 선택을 줄이세요.'); return; }
     pending.current = true; dispatchUncertain.current = false; setBusy(true); setError(null); setNotice(null); setClipboard(null);
     const epoch = generation.current;
-    cutSequence.current = null;
+    cutSequence.current = null; copyFallback.current = undefined;
     try {
       const sequence = mode === 'move' && !destination ? await clipboardSequence() : null;
       setStage('선택 항목 수집');
@@ -71,7 +72,31 @@ export function useFileTransfer(projectId: string | null, open: (draft: FileActi
         if (destination) await startCopy(result.id, destination);
         return;
       }
-      const result = await captureTransfer(mode, selection);
+      let result: TransferPreview;
+      try {
+        if (selection.entryIds.length > 1024) throw new IpcFault('payload_limit');
+        result = await captureTransfer(mode, selection);
+      } catch (failure) {
+        if (epoch !== generation.current) return;
+        if (!canFallbackToCopy(failure)) throw failure;
+        const copied = await stageCopy(selection, () => epoch === generation.current);
+        if (epoch !== generation.current) { await discardCopyCapture(copied.id); return; }
+        if (copyCapture.current) void discardCopyCapture(copyCapture.current).catch(() => {});
+        copyCapture.current = copied.id; copyCount.current = copied.count;
+        const transfer = { token: copied.id, mode: 'copy' as const, count: copied.count };
+        setClipboard(transfer);
+        open({ kind: 'copy', root: destination ?? '', destination: destination ?? '', selection: null, transfer, copyFallbackReason: copyFallbackNotice(failure) });
+        return;
+      }
+      // Retain a separately validated, copy-only snapshot while the source
+      // listing is alive. Navigation must not turn fallback into a new selection.
+      try {
+        const copied = await stageCopy(selection, () => epoch === generation.current);
+        if (epoch !== generation.current) { await discardCopyCapture(copied.id); return; }
+        if (copyCapture.current) void discardCopyCapture(copyCapture.current).catch(() => {});
+        copyCapture.current = copied.id; copyCount.current = copied.count;
+        copyFallback.current = { token: copied.id, mode: 'copy', count: copied.count };
+      } catch { /* A failed copy snapshot does not disable a supported move. */ }
       if (epoch !== generation.current) return;
       if (sequence !== null) {
         const current = await clipboardSequence();
@@ -81,7 +106,7 @@ export function useFileTransfer(projectId: string | null, open: (draft: FileActi
       cutSequence.current = sequence;
       setClipboard(result);
       if (destination) {
-        const draft = { kind: mode, root: destination, selection: null, transfer: result };
+        const draft = { kind: mode, root: destination, selection: null, transfer: result, copyFallback: copyFallback.current };
         open(draft);
       }
     } catch (error) { if (epoch === generation.current) setError(copyFailure(error)); }
@@ -164,7 +189,7 @@ export function useFileTransfer(projectId: string | null, open: (draft: FileActi
         setError('Windows 클립보드가 바뀌어 앱 잘라내기를 취소했습니다. Ctrl+V를 다시 누르면 Windows에서 붙여넣습니다.');
         return;
       }
-      open({ kind: 'move', root, selection: null, transfer: captured });
+      open({ kind: 'move', root, selection: null, transfer: captured, copyFallback: copyFallback.current });
     } catch (error) { if (epoch === generation.current) setError(copyFailure(error)); }
     finally { pending.current = false; setBusy(false); setStage(null); }
   };
@@ -194,7 +219,7 @@ export function useFileTransfer(projectId: string | null, open: (draft: FileActi
     capture: (mode: TransferMode, selection: OperationSelection) => { void capture(mode, selection); },
     paste: (root: string) => {
       if (!clipboard || pending.current) return;
-      const draft = { kind: clipboard.mode, root, selection: null, transfer: clipboard };
+      const draft = { kind: clipboard.mode, root, selection: null, transfer: clipboard, copyFallback: copyFallback.current };
       if (clipboard.mode === 'copy' && copyCapture.current) {
         pending.current = true; setBusy(true); setError(null);
         void startCopy(copyCapture.current, root).catch(error => setError(copyFailure(error)))
@@ -202,7 +227,7 @@ export function useFileTransfer(projectId: string | null, open: (draft: FileActi
       } else if (clipboard.mode === 'copy') setError('복사 원본을 다시 선택한 뒤 복사하세요.'); else open(draft);
     },
     submitted: (draft: FileActionDraft) => {
-      if (draft.kind === 'copy') setCopyRevision(value => value + 1);
+      if (draft.kind === 'copy' || draft.kind === 'move') setCopyRevision(value => value + 1);
       if (draft.transfer?.mode === 'move') setClipboard(current => current?.token === draft.transfer?.token ? null : current);
     },
     beginDrag: (selection: OperationSelection) => {

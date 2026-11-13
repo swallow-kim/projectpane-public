@@ -1,4 +1,5 @@
-import { toFaultCode } from '../../shared/fault';
+import { canFallbackToCopy, copyFallbackNotice } from './cut-fallback';
+import { IpcFault, toFaultCode } from '../../shared/fault';
 import { beginCopyJob, discardCopyCapture, stageCopy } from './copy-job-client';
 import { useEffect, useId, useRef, useState } from 'react';
 import { fileActionText, type FileActionDraft, type OperationPreview } from '../../shared/operations';
@@ -6,7 +7,9 @@ import { discardFileAction, executeFileAction, operationError, prepareFileAction
 import { FavoriteDestination } from '../favorites/FavoritesDialog';
 import { joinRenameName, splitRenameName, validRenameName } from './rename-name';
 
-export function FileActionDialog({ draft, projectId, close, submitted }: { readonly draft: FileActionDraft; readonly projectId: string | null; readonly close: () => void; readonly submitted: () => void }) {
+export function FileActionDialog({ draft: initialDraft, projectId, close, submitted }: { readonly draft: FileActionDraft; readonly projectId: string | null; readonly close: () => void; readonly submitted: () => void }) {
+  const [fallback, setFallback] = useState<string | null>(null);
+  const draft: FileActionDraft = fallback ? { ...initialDraft, kind: 'copy', transfer: initialDraft.copyFallback, copyFallbackReason: fallback } : initialDraft;
   const archive = draft.kind === 'compress' || draft.kind === 'extract';
   const [tools, setTools] = useState<ArchiveTool[]>([]);
   const [engine, setEngine] = useState<'windows' | ArchiveTool['id']>('windows');
@@ -65,6 +68,7 @@ export function FileActionDialog({ draft, projectId, close, submitted }: { reado
         } finally { if (capture) await discardCopyCapture(capture.id).catch(() => {}); }
         return;
       }
+      if (draft.kind === 'move' && (draft.selection?.entryIds.length ?? 0) > 1024) throw new IpcFault('payload_limit');
       const result = await prepareFileAction(draft, rename ? finalName : value, projectId, copyWithName ? copyName : undefined, skipExisting);
       if (epoch !== generation.current) { await discardFileAction(result.id); return; }
       prepared.current = result.id;
@@ -74,6 +78,9 @@ export function FileActionDialog({ draft, projectId, close, submitted }: { reado
         prepared.current = null; submitted(); close();
       } else setPreview(result);
     } catch (error) {
+      if (epoch === generation.current && draft.kind === 'move' && !sending.current && !prepared.current && canFallbackToCopy(error) && (draft.selection || draft.copyFallback)) {
+        setFallback(copyFallbackNotice(error)); setError(null); return;
+      }
       if (draft.kind === 'copy' && !['ipc_error', 'io_error', 'protocol_error', 'timeout'].includes(toFaultCode(error))) sending.current = false;
       if (epoch === generation.current) {
         if (sending.current) {
@@ -117,11 +124,12 @@ export function FileActionDialog({ draft, projectId, close, submitted }: { reado
       {builtinUnavailable && <p role="status">ZIP 이외 형식은 설치된 압축 앱을 선택하세요.</p>}
       {engine !== 'windows' && <p>외부 앱에서 설정·진행·취소·결과를 확인합니다. WinRAR/Bandizip 압축 해제는 해당 앱에서 대상 폴더를 선택하세요. ProjectPane 작업 기록에는 완료로 기록하지 않습니다.</p>}</>}
     {handedOff ? <><p role="status">압축 앱으로 전달했습니다. 완료 여부와 취소는 해당 앱에서 확인하세요.</p><button onClick={close}>닫기</button></> : <>
+    {draft.copyFallbackReason && <p role="alert">{draft.copyFallbackReason}</p>}
     {draft.copyConflict && <p role="alert">같은 이름의 항목이 있어 복사하지 않았습니다. 아래에서 기존 파일 건너뛰기 또는 다른 이름으로 복사를 선택하세요. 덮어쓰기는 지원하지 않습니다.</p>}
     {draft.transfer && <p>앱 안에 담은 {draft.transfer.count}개 · {draft.transfer.mode === 'copy' ? '복사' : '잘라내기'}. {draft.transfer.mode === 'move' && '실행을 접수하면 비워집니다. 실패한 항목은 결과를 확인한 뒤 다시 선택하세요.'}</p>}
     {archive && <p>Windows 기본 ZIP 엔진 · 최대 2,048항목 / 1GiB · 새 파일/폴더에만 생성합니다. 실패·취소 시 일부 출력은 남을 수 있으며 상단 파일 작업에서 결과를 확인하세요.</p>}
     {draft.kind === 'move' && <p>같은 WSL 배포판·볼륨 안에서는 파일·폴더를 그대로 이동합니다. Windows↔WSL·다른 배포판·일반 네트워크 사이에는 복사를 사용하세요. 다른 드라이브의 폴더 이동은 로컬 NTFS의 일반 폴더만 지원합니다(최대 2,048항목). 링크·암호화·폴더의 추가 데이터 스트림은 지원하지 않습니다. 작업 중 다른 앱에서 원본을 수정하지 마세요. 취소는 완료된 이동을 되돌리지 않습니다.</p>}
-    {draft.kind === 'copy' && <p>{skipExisting ? '고정 드라이브의 일반 파일만 지원합니다. 같은 이름의 대상 파일은 그대로 두고, 나머지를 복사합니다. 확인 뒤 대상이 바뀌면 다시 확인해야 합니다.' : copyWithName ? '고정 드라이브의 일반 파일 하나를 새 이름으로 복사합니다. 원본은 유지하며, 같은 이름의 대상이 있으면 실행하지 않습니다.' : '폴더 안의 항목까지 최대 2,048개를 복사합니다. 경로가 길면 더 적은 수에서 제한되며, 링크가 포함된 폴더와 기존 대상은 복사하지 않습니다.'}</p>}
+    {draft.kind === 'copy' && <p>{skipExisting ? '고정 드라이브의 일반 파일만 지원합니다. 같은 이름의 대상 파일은 그대로 두고, 나머지를 복사합니다. 확인 뒤 대상이 바뀌면 다시 확인해야 합니다.' : copyWithName ? '고정 드라이브의 일반 파일 하나를 새 이름으로 복사합니다. 원본은 유지하며, 같은 이름의 대상이 있으면 실행하지 않습니다.' : '폴더 내용도 복사하며 원본은 유지합니다. 같은 이름의 대상은 덮어쓰지 않습니다. 링크나 보존할 수 없는 추가 데이터가 있으면 해당 항목을 중단하고 결과에 표시합니다.'}</p>}
     {preview ? <>
       {rename && extensionChanged && <p role="alert">확장자를 변경하거나 제거합니다. 파일 내용이나 형식은 변환되지 않으며, 연결된 앱에서 열리지 않을 수 있습니다. 최종 파일명을 확인하세요.</p>}
       <p>{preview.kind === 'copy_skip_existing' ? `복사 ${preview.sources.length - (preview.skippedSources?.length ?? 0)}개 · 기존 파일 유지 ${preview.skippedSources?.length ?? 0}개. 건너뛸 항목을 확인하세요.` : preview.kind === 'copy_as' ? '아래 새 이름으로 복사합니다. 기존 파일은 덮어쓰지 않습니다.' : '아래 대상에 작업을 실행합니다.'}</p>
@@ -131,7 +139,7 @@ export function FileActionDialog({ draft, projectId, close, submitted }: { reado
       <div className="operation-dialog__actions"><button disabled={busy} onClick={() => void execute()}>{preview.kind === 'copy_skip_existing' && preview.skippedSources?.length === preview.sources.length ? '모두 건너뛰기' : '실행'}</button><button disabled={busy} onClick={() => void revise()}>조건 변경</button><button disabled={busy} onClick={close}>취소</button></div>
     </> : <form onSubmit={event => { event.preventDefault(); void prepare(); }}>
       {!named && <FavoriteDestination disabled={busy} choose={setValue} />}
-      <p className="operation-path">현재 폴더: {draft.root}</p>
+      {draft.root && <p className="operation-path">현재 폴더: {draft.root}</p>}
       {draft.selection && <p>선택한 항목 {draft.selection.entryIds.length}개</p>}
       <label className="operation-field">{rename ? '이름' : archive ? (draft.kind === 'compress' ? 'ZIP 파일 이름' : '새 압축 해제 폴더 이름') : named ? '새 이름' : '대상 폴더 절대 경로'}<input ref={input} value={value} disabled={busy} autoComplete="off" spellCheck={false} required onChange={event => setValue(event.target.value)} /></label>
       {rename && !folder && <><label className="operation-field">확장자<input aria-describedby={`${id}-extension-help`} value={extension} disabled={busy} autoComplete="off" spellCheck={false} placeholder="없음" onChange={event => setExtension(event.target.value)} /></label><small id={`${id}-extension-help`}>점(.) 없이 입력합니다. 비우면 확장자를 제거합니다.</small></>}

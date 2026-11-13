@@ -210,7 +210,7 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
         <p>라이선스·제3자 고지와 MPL 소스 안내: 앱 실행 파일 옆 licenses 폴더. 설치형 기본 위치는 %LOCALAPPDATA%\ProjectPane\licenses입니다.</p>
         <p>Windows 복사/붙여넣기: Ctrl+C / V · 앱 안 잘라내기: Ctrl+X</p>
         <p>앱 보관 복사/붙여넣기: Ctrl+Shift+C / V · 외부 끌기: 복사만</p>
-        <p>WSL·네트워크는 복사, 파일 이동은 로컬 고정 드라이브를 지원합니다. 다른 드라이브의 폴더 이동은 로컬 NTFS의 일반 폴더에 한정합니다. 휴지통은 고정 드라이브 일반 파일만 지원합니다.</p>
+        <p>WSL·네트워크는 복사, 파일 이동은 로컬 고정 드라이브를 지원합니다. 다른 드라이브의 폴더 이동은 로컬 NTFS의 일반 폴더에 한정합니다. 휴지통은 고정 드라이브의 파일과 폴더를 지원합니다.</p>
         {!desktop && <p>브라우저 합성 목록 시험 · 실제 파일 조회는 데스크톱 앱에서 실행하세요.</p>}
       </div></details>
     </header>

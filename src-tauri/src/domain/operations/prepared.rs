@@ -60,6 +60,10 @@ pub enum PreparedAction {
     Recycle {
         sources: Vec<OperationSource>,
     },
+    RecycleBatch {
+        roots: Vec<OperationSource>,
+        descendants: Vec<OperationSource>,
+    },
     RecycleTree {
         root: OperationSource,
         descendants: Vec<OperationSource>,
@@ -180,6 +184,10 @@ impl OperationPlan {
                 destination.directory()?;
             }
             PreparedAction::Recycle { sources } => validate_sources(sources)?,
+            PreparedAction::RecycleBatch { roots, descendants } => {
+                validate_sources(roots)?;
+                super::tree::validate_tree(roots, descendants)?;
+            }
             PreparedAction::RecycleTree { root, descendants } => {
                 root.directory()?;
                 super::tree::validate_tree(std::slice::from_ref(root), descendants)?;

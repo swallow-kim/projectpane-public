@@ -152,10 +152,82 @@ impl FolderRecycleSnapshot {
 
 fn check_root(root: &OperationSource) -> Result<(), Fault> {
     if root.kind != EntryKind::Folder
+        || !super::identity::fixed_local(&root.path)
         || Path::new(&root.path).file_name().is_none()
         || in_recycle_bin(&root.path)
     {
         return Err(Fault::new(FaultCode::InvalidRequest));
+    }
+    Ok(())
+}
+
+/// Prepare the entire selection before any destructive Shell call is queued.
+pub(super) fn prepare(roots: Vec<OperationSource>) -> Result<PreparedAction, Fault> {
+    if !roots.iter().any(|source| source.kind == EntryKind::Folder) {
+        super::recycle::check(&roots)?;
+        return Ok(PreparedAction::Recycle { sources: roots });
+    }
+    let mut descendants = Vec::new();
+    let mut bytes = 4096 + bounded_json(&roots)?.len();
+    for root in &roots {
+        if root.kind == EntryKind::Folder {
+            let snapshot = FolderRecycleSnapshot::capture(&root.path)?;
+            if snapshot.root() != root {
+                return Err(Fault::new(FaultCode::StaleRequest));
+            }
+            for source in snapshot.descendants {
+                if roots.len() + descendants.len() >= MAX_OPERATION_RESULTS {
+                    return Err(Fault::new(FaultCode::ResourceLimit));
+                }
+                bytes += bounded_json(&source)?.len() + 1;
+                if bytes >= MAX_FRAME {
+                    return Err(Fault::new(FaultCode::PayloadLimit));
+                }
+                descendants.push(source);
+            }
+        } else {
+            super::recycle::check(std::slice::from_ref(root))?;
+        }
+    }
+    let action = PreparedAction::RecycleBatch { roots, descendants };
+    OperationPlan {
+        project_id: None,
+        action: action.clone(),
+    }
+    .validate()?;
+    Ok(action)
+}
+
+pub(super) fn batch_folder(
+    root: &OperationSource,
+    descendants: &[OperationSource],
+) -> Result<FolderRecycleSnapshot, Fault> {
+    let children: Vec<_> = descendants
+        .iter()
+        .filter(|source| Path::new(&source.path).starts_with(&root.path))
+        .cloned()
+        .collect();
+    FolderRecycleSnapshot::from_prepared(root, &children)
+}
+
+pub(super) fn check_batch(
+    roots: &[OperationSource],
+    descendants: &[OperationSource],
+) -> Result<(), Fault> {
+    // Reserve the result paths for the whole selection, not only each file.
+    let result_bytes = 4096
+        + roots.iter().try_fold(0, |bytes, source| {
+            bounded_json(source).map(|value| bytes + value.len() + 4096)
+        })?;
+    if result_bytes >= MAX_FRAME {
+        return Err(Fault::new(FaultCode::PayloadLimit));
+    }
+    for root in roots {
+        if root.kind == EntryKind::Folder {
+            batch_folder(root, descendants)?;
+        } else {
+            super::recycle::check(std::slice::from_ref(root))?;
+        }
     }
     Ok(())
 }

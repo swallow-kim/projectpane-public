@@ -60,7 +60,7 @@ export const operationReportSchema = z.strictObject({
     && (!report.evidence.outcomesComplete || retained[status] === report.counts[status]));
 });
 export type OperationReport = z.infer<typeof operationReportSchema>;
-export type FileActionDraft = { readonly kind: FileActionKind; readonly root: string; readonly selection: OperationSelection | null; readonly transfer?: TransferPreview; readonly destination?: string; readonly copyConflict?: boolean; readonly archiveName?: string; readonly archiveFormat?: string; readonly renameEntry?: { readonly name: string; readonly kind: 'file' | 'folder' } };
+export type FileActionDraft = { readonly kind: FileActionKind; readonly root: string; readonly selection: OperationSelection | null; readonly transfer?: TransferPreview; readonly destination?: string; readonly copyConflict?: boolean; readonly copyFallback?: TransferPreview; readonly copyFallbackReason?: string; readonly archiveName?: string; readonly archiveFormat?: string; readonly renameEntry?: { readonly name: string; readonly kind: 'file' | 'folder' } };
 export const fileActionText: Readonly<Record<FileActionKind, string>> = { new_folder: '새 폴더', rename: '이름 변경', copy: '파일 복사', move: '파일 이동', recycle: '휴지통', compress: '압축하기', extract: '압축 해제' };
 export const terminalOperation = (status: z.infer<typeof operationStatusSchema>) => ['succeeded', 'partially_succeeded', 'cancelled', 'failed', 'interrupted_unknown'].includes(status);
 export const removableOperation = (operation: OperationSnapshot) => operation.journalSaved && ['succeeded', 'partially_succeeded', 'cancelled', 'failed'].includes(operation.status);

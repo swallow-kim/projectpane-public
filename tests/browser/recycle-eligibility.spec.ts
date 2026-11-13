@@ -1,7 +1,24 @@
 import { expect, test } from '@playwright/test';
 import { confirmRecycle, installRecycle, openRecycle, recycleButton, recycleCallCount, recycleDialog } from './p4-recycle-fixture';
 
-for (const kind of ['folder', 'link', 'unknown'] as const) {
+test('folder recycle is enabled from toolbar and context menu with cancellable preview', async ({ page }) => {
+  await installRecycle(page, { kind: 'folder' });
+  await page.goto('/');
+  const row = page.getByRole('listbox', { name: '패널 1 파일 목록', exact: true }).getByRole('option').first();
+  await row.click();
+  await expect(recycleButton(page)).toBeEnabled();
+  await recycleButton(page).click();
+  await expect(confirmRecycle(page)).toBeEnabled();
+  await recycleDialog(page).getByRole('button', { name: '취소', exact: true }).click();
+  await row.click({ button: 'right' });
+  await page.getByRole('menuitem', { name: '휴지통으로 이동', exact: false }).click();
+  await expect(confirmRecycle(page)).toBeEnabled();
+  await recycleDialog(page).getByRole('button', { name: '취소', exact: true }).click();
+  expect(await recycleCallCount(page, 'execute_operation')).toBe(0);
+  expect(await recycleCallCount(page, 'prepare_operation')).toBe(2);
+});
+
+for (const kind of ['link', 'unknown'] as const) {
   test(`known selected ${kind} cannot open recycle confirmation`, async ({ page }) => {
     await installRecycle(page, { kind });
     await page.goto('/');
@@ -69,7 +86,7 @@ for (const width of [375, 768, 1280]) {
     await openRecycle(page);
     await page.setViewportSize({ width, height: 900 });
     await expect(confirmRecycle(page)).toBeEnabled();
-    await expect(recycleDialog(page)).toContainText('고정 드라이브의 일반 파일만');
+    await expect(recycleDialog(page)).toContainText('고정 드라이브의 파일과 폴더');
     const bounds = await recycleDialog(page).boundingBox();
     expect(bounds).not.toBeNull();
     expect(bounds?.x).toBeGreaterThanOrEqual(0);

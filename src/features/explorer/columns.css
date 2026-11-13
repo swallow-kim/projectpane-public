@@ -1,0 +1,8 @@
+.listing-table .column-heading, .listing-table .file-row { grid-template-columns: var(--file-columns); }
+.listing-table .column-heading, .listing-table .file-list { min-width: var(--file-columns-min); }
+.column-heading .column-label { position: relative; min-width: 0; white-space: nowrap; }
+.column-resizer { position: absolute; top: -4px; bottom: -4px; right: -5px; width: 10px; cursor: col-resize; touch-action: none; z-index: 2; border: 0; outline-offset: -2px; }
+.column-resizer::after { content: ''; position: absolute; left: 4px; top: 3px; bottom: 3px; width: 1px; background: var(--border); }
+.column-resizer:hover::after, .column-resizer:focus-visible::after { background: var(--accent); width: 2px; }
+.column-resizer:focus-visible { outline: 2px solid var(--accent); }
+.column-heading[data-resizing=true] { user-select: none; cursor: col-resize; }

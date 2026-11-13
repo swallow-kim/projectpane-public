@@ -1,6 +1,6 @@
 # Third-party license texts
 
-ProjectPane 1.5.0. Upstream copyright and notices for the conservative runtime graph. Installer and Microsoft SDK notices are in licenses/. Exact corresponding source URLs, including MPL components, are in dependency-licenses-1.5.0.md.
+ProjectPane 1.5.1. Upstream copyright and notices for the conservative runtime graph. Installer and Microsoft SDK notices are in licenses/. Exact corresponding source URLs, including MPL components, are in dependency-licenses-1.5.1.md.
 
 ## License text 01c266bced4a
 
