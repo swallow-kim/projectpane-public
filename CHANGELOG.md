@@ -1,5 +1,12 @@
 # 변경 내역
 
+## 1.5.2 — 2026-11-13
+
+- Added a Korean/English language selector with immediate switching and a saved preference. Existing users keep Korean by default.
+- Localized app menus, file actions, project and favorite management, updates, status messages and accessibility labels. User file names and paths are unchanged.
+- Windows shell menus and external application dialogs continue to use their own language settings.
+
+
 ## 1.5.1 — 2026-11-13
 
 - 폴더 선택 시에도 삭제 버튼과 우클릭 메뉴에서 휴지통 작업을 요청할 수 있습니다. 확인과 원본 검증을 유지하며 영구 삭제로 대체하지 않습니다.

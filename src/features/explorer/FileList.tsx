@@ -1,3 +1,4 @@
+import { t, useLanguage, locale } from '../../shared/i18n';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ListingController } from './listing';
 import type { ListPosition, PositionUpdate } from './navigation';
@@ -37,6 +38,7 @@ export function FileList({ pane, visible, synthetic, listing, composing, positio
   readonly onPosition: (update: PositionUpdate) => void;
   readonly onActivate: (entryId: string) => void;
 }) {
+  useLanguage();
   const columns = useColumnWidths(pane);
   const scroller = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -75,7 +77,7 @@ export function FileList({ pane, visible, synthetic, listing, composing, positio
 
   return <><div className="listing-table" style={columns.style}>
     <ColumnHeading widths={columns.widths} change={columns.change} />
-    <div ref={scroller} className="file-list marquee-list" data-marquee={marquee.active} role="listbox" aria-label={`패널 ${pane + 1} 파일 목록`}
+    <div ref={scroller} className="file-list marquee-list" data-marquee={marquee.active} role="listbox" aria-label={t('패널 {number} 파일 목록', 'Pane {number} file list', { number: pane + 1 })}
       onBlur={() => marquee.cancel()}
       onPointerMove={marquee.move} onPointerUp={marquee.up} onPointerCancel={() => marquee.cancel()} onLostPointerCapture={() => marquee.cancel()}
       onClickCapture={event => { if (marquee.click()) { event.preventDefault(); event.stopPropagation(); } }}
@@ -206,16 +208,16 @@ export function FileList({ pane, visible, synthetic, listing, composing, positio
             style={{ height: row.size, transform: `translateY(${row.start}px)` }}>
             <span className="file-name" title={entry?.name}>
               {entry && <EntryIcon kind={entry.kind} />}
-              {entry?.name ?? (listing.state.viewPending ? '정렬·필터 적용 중…' : listing.state.status === 'error' ? '항목을 불러오지 못했습니다' : '불러오는 중…')}
+              {entry?.name ?? (listing.state.viewPending ? t("정렬·필터 적용 중…", "Applying sort and filter…") : listing.state.status === 'error' ? t("항목을 불러오지 못했습니다", "Could not load this item") : t("불러오는 중…", "Loading…"))}
             </span>
             <span className="kind" title={type}>{type}</span>
-            <span className="size" title={entry?.sizeBytes === null ? '폴더 또는 확인할 수 없는 크기' : entry?.sizeBytes !== undefined ? `${entry.sizeBytes.toLocaleString()} bytes` : undefined}>{size}</span>
-            <span className="modified" title={modified === '—' ? '수정한 날짜를 확인할 수 없습니다' : modified ? `${modified} (PC 현지 시간)` : undefined}>{modified}</span>
+            <span className="size" title={entry?.sizeBytes === null ? t("폴더 또는 확인할 수 없는 크기", "Folder or unavailable size") : entry?.sizeBytes !== undefined ? `${entry.sizeBytes.toLocaleString(locale())} bytes` : undefined}>{size}</span>
+            <span className="modified" title={modified === '—' ? t("수정한 날짜를 확인할 수 없습니다", "Date modified is unavailable") : modified ? t('{date} (PC 현지 시간)', '{date} (PC local time)', { date: modified }) : undefined}>{modified}</span>
           </div>;
         })}
         {marquee.rectangle && <div className="file-marquee" aria-hidden="true" style={marquee.rectangle} />}
       </div>
     </div>
   </div>{menu && menuReady && menuActions && <FileContextMenu x={menu.x} y={menu.y} actions={menuActions} close={closeMenu} />}
-    {(selection.error || selection.pending) && <div className="selection-feedback" role={selection.error ? 'alert' : 'status'}>{selection.error ?? '선택 중…'}</div>}</>;
+    {(selection.error || selection.pending) && <div className="selection-feedback" role={selection.error ? 'alert' : 'status'}>{selection.error ?? t("선택 중…", "Selecting…")}</div>}</>;
 }

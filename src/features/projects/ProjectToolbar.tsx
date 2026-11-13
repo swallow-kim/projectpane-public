@@ -1,3 +1,4 @@
+import { t, useLanguage } from '../../shared/i18n';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import './project-toolbar.css';
@@ -32,15 +33,15 @@ export interface ProjectToolbarProps {
   readonly onRetry: () => void;
 }
 
-const actions = {
-  create: { label: '새 프로젝트', submit: '만들기', hint: '이름과 루트 폴더 경로를 입력하세요.' },
-  edit: { label: '프로젝트 편집', submit: '변경하기', hint: '이름과 루트 경로를 변경합니다. 열려 있는 폴더와 실제 파일은 이동하지 않습니다.' },
-  duplicate: { label: '복제', submit: '복제하기', hint: '프로젝트 설정을 복제합니다. 파일과 폴더는 복사하지 않습니다.' },
-  remove: { label: '목록에서 제거', submit: '제거하기', hint: '파일과 폴더는 삭제되지 않습니다.' },
-  savePreset: { label: '현재 상태를 프리셋으로 저장', submit: '프리셋 저장하기', hint: '현재 작업 상태를 이 프로젝트의 프리셋으로 저장합니다. 기존 프리셋은 대체됩니다.' },
-  restorePreset: { label: '프리셋 복원', submit: '복원하기', hint: '현재 작업 상태를 저장된 프리셋으로 바꿉니다.' },
-} as const;
-type Action = keyof typeof actions;
+const getActions = () => ({
+  create: { label: t("새 프로젝트", "New project"), submit: t("만들기", "Create"), hint: t("이름과 루트 폴더 경로를 입력하세요.", "Enter a name and root folder path.") },
+  edit: { label: t("프로젝트 편집", "Edit project"), submit: t("변경하기", "Apply"), hint: t("이름과 루트 경로를 변경합니다. 열려 있는 폴더와 실제 파일은 이동하지 않습니다.", "Change the name and root path. Open folders and files will not be moved.") },
+  duplicate: { label: t("복제", "Duplicate"), submit: t("복제하기", "Duplicate"), hint: t("프로젝트 설정을 복제합니다. 파일과 폴더는 복사하지 않습니다.", "Duplicate the project settings. Files and folders will not be copied.") },
+  remove: { label: t("목록에서 제거", "Remove from list"), submit: t("제거하기", "Remove"), hint: t("파일과 폴더는 삭제되지 않습니다.", "Files and folders will not be deleted.") },
+  savePreset: { label: t("현재 상태를 프리셋으로 저장", "Save current layout as preset"), submit: t("프리셋 저장하기", "Save preset"), hint: t("현재 작업 상태를 이 프로젝트의 프리셋으로 저장합니다. 기존 프리셋은 대체됩니다.", "Save the current workspace as this project’s preset. This replaces the existing preset.") },
+  restorePreset: { label: t("프리셋 복원", "Restore preset"), submit: t("복원하기", "Restore"), hint: t("현재 작업 상태를 저장된 프리셋으로 바꿉니다.", "Replace the current workspace with the saved preset.") },
+} as const);
+type Action = keyof ReturnType<typeof getActions>;
 const actionOrder: readonly Action[] = ['create', 'edit', 'duplicate', 'remove', 'savePreset', 'restorePreset'];
 
 export function ProjectToolbar(props: ProjectToolbarProps) {
@@ -48,6 +49,8 @@ export function ProjectToolbar(props: ProjectToolbarProps) {
 }
 
 function ToolbarContent(props: ProjectToolbarProps) {
+  useLanguage();
+  const actions = getActions();
   const id = useId();
   const [action, setAction] = useState<Action | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
@@ -85,10 +88,10 @@ function ToolbarContent(props: ProjectToolbarProps) {
     }
     close();
   };
-  return <section className="project-toolbar" aria-label="프로젝트 관리" onKeyDown={event => event.stopPropagation()}>
+  return <section className="project-toolbar" aria-label={t("프로젝트 관리", "Manage projects")} onKeyDown={event => event.stopPropagation()}>
     <div className="project-toolbar__row">
-      <div className="project-tabs" role="tablist" aria-label="프로젝트" ref={tabs}>
-        {props.projects.length === 0 && <span className="project-empty">프로젝트 없음</span>}
+      <div className="project-tabs" role="tablist" aria-label={t("프로젝트", "Projects")} ref={tabs}>
+        {props.projects.length === 0 && <span className="project-empty">{t("프로젝트 없음", "No projects")}</span>}
         {props.projects.map((project, index) => <button type="button" role="tab" key={project.id}
           data-project-id={project.id} aria-selected={project.id === selected?.id} aria-controls="project-workspace"
           tabIndex={project.id === focusId ? 0 : -1} title={project.name} disabled={!canSelect}
@@ -105,9 +108,9 @@ function ToolbarContent(props: ProjectToolbarProps) {
             }
           }}>{project.name}</button>)}
       </div>
-      <span className="project-save-status" role="status" aria-atomic="true" title={props.saveStatusText}>{props.saving ? '저장 중…' : props.error ? '저장 실패' : props.saveStatusText ?? '저장 상태 없음'}{props.readOnly && ' · 읽기 전용'}</span>
-      <details className="project-manager" ref={manager}><summary>프로젝트 관리</summary>
-      <div className="project-toolbar__actions" role="group" aria-label="프로젝트 작업">
+      <span className="project-save-status" role="status" aria-atomic="true" title={props.saveStatusText}>{props.saving ? t("저장 중…", "Saving…") : props.error ? t("저장 실패", "Save failed") : props.saveStatusText ?? t("저장 상태 없음", "No save status")}{props.readOnly && t(" · 읽기 전용", " · Read-only")}</span>
+      <details className="project-manager" ref={manager}><summary>{t("프로젝트 관리", "Manage projects")}</summary>
+      <div className="project-toolbar__actions" role="group" aria-label={t("프로젝트 작업", "Project actions")}>
         {actionOrder.map(candidate => <button type="button" key={candidate} disabled={!allowed(candidate)}
           aria-expanded={action === candidate} aria-controls={action === candidate ? `${id}-editor` : undefined}
           onClick={event => { opener.current = event.currentTarget; setAction(candidate); if (manager.current) manager.current.open = false; }}>
@@ -118,7 +121,7 @@ function ToolbarContent(props: ProjectToolbarProps) {
     </div>
       {props.error && <div className="project-toolbar__error">
         <span role="alert">{props.error}</span>
-        <button type="button" disabled={!writable || props.capabilities?.retry === false} onClick={props.onRetry}>다시 시도</button>
+        <button type="button" disabled={!writable || props.capabilities?.retry === false} onClick={props.onRetry}>{t("다시 시도", "Retry")}</button>
       </div>}
     {action && <ProjectEditor key={`${action}-${selected?.id ?? ''}`} id={`${id}-editor`} action={action} selected={selected}
       enabled={allowed(action)} onCancel={close} onSubmit={dispatch} />}
@@ -135,7 +138,9 @@ type EditorProps = {
 };
 
 function ProjectEditor({ id, action, selected, enabled, onCancel, onSubmit }: EditorProps) {
-  const [name, setName] = useState(action === 'create' ? '' : action === 'duplicate' ? `${selected?.name ?? ''} 복사본` : selected?.name ?? '');
+  useLanguage();
+  const actions = getActions();
+  const [name, setName] = useState(action === 'create' ? '' : action === 'duplicate' ? t('{name} 복사본', '{name} copy', { name: selected?.name ?? '' }) : selected?.name ?? '');
   const [rootPath, setRootPath] = useState(action === 'edit' ? selected?.rootPath ?? '' : '');
   const input = useRef<HTMLInputElement | null>(null);
   const cancel = useRef<HTMLButtonElement | null>(null);
@@ -169,18 +174,18 @@ function ProjectEditor({ id, action, selected, enabled, onCancel, onSubmit }: Ed
     </div>
     <p id={`${id}-hint`}>{actions[action].hint}</p>
     {named && <div className="project-toolbar__fields">
-      <label htmlFor={`${id}-name`}>프로젝트 이름
+      <label htmlFor={`${id}-name`}>{t("프로젝트 이름", "Project name")}
         <input id={`${id}-name`} ref={input} value={name} required disabled={!enabled} autoComplete="off"
           onChange={event => setName(event.currentTarget.value)} />
       </label>
-      {(action === 'create' || action === 'edit') && <label className="project-toolbar__root" htmlFor={`${id}-root`}>루트 경로
+      {(action === 'create' || action === 'edit') && <label className="project-toolbar__root" htmlFor={`${id}-root`}>{t("루트 경로", "Root path")}
         <input id={`${id}-root`} value={rootPath} required disabled={!enabled} autoComplete="off" spellCheck={false}
-          placeholder="D:\작업 폴더" onChange={event => setRootPath(event.currentTarget.value)} />
+          placeholder={t("D:\\작업 폴더", "D:\\Work folder")} onChange={event => setRootPath(event.currentTarget.value)} />
       </label>}
     </div>}
     <div className="project-toolbar__editor-actions">
       <button type="submit" className="project-toolbar__submit" disabled={!enabled || !valid}>{actions[action].submit}</button>
-      <button type="button" ref={cancel} onClick={onCancel}>취소</button>
+      <button type="button" ref={cancel} onClick={onCancel}>{t("취소", "Cancel")}</button>
     </div>
   </form>;
 }

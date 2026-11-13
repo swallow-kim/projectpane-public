@@ -1,0 +1,4 @@
+.language-control { position: relative; }
+.language-control label { display: flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
+.language-control select { min-width: 88px; padding: 5px 7px; border: 1px solid var(--border, #d7dce2); border-radius: 6px; color: inherit; background: var(--surface, #fff); font: inherit; }
+.language-warning { position: absolute; top: 100%; right: 0; width: 260px; padding: 8px; background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; border-radius: 6px; z-index: 30; }

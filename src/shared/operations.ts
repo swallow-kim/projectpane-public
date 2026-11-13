@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { z } from 'zod';
 import { MAX_FRAME, identitySchema } from './contracts';
 import { entryIdSchema } from './listing-view';
@@ -60,8 +61,8 @@ export const operationReportSchema = z.strictObject({
     && (!report.evidence.outcomesComplete || retained[status] === report.counts[status]));
 });
 export type OperationReport = z.infer<typeof operationReportSchema>;
-export type FileActionDraft = { readonly kind: FileActionKind; readonly root: string; readonly selection: OperationSelection | null; readonly transfer?: TransferPreview; readonly destination?: string; readonly copyConflict?: boolean; readonly copyFallback?: TransferPreview; readonly copyFallbackReason?: string; readonly archiveName?: string; readonly archiveFormat?: string; readonly renameEntry?: { readonly name: string; readonly kind: 'file' | 'folder' } };
-export const fileActionText: Readonly<Record<FileActionKind, string>> = { new_folder: '새 폴더', rename: '이름 변경', copy: '파일 복사', move: '파일 이동', recycle: '휴지통', compress: '압축하기', extract: '압축 해제' };
+export type FileActionDraft = { readonly kind: FileActionKind; readonly root: string; readonly selection: OperationSelection | null; readonly transfer?: TransferPreview; readonly destination?: string; readonly copyConflict?: boolean; readonly copyFallback?: TransferPreview; readonly copyFallbackReason?: string; readonly copyFallbackCode?: string; readonly archiveName?: string; readonly archiveFormat?: string; readonly renameEntry?: { readonly name: string; readonly kind: 'file' | 'folder' } };
+export const fileActionText: Readonly<Record<FileActionKind, string>> = { get new_folder() { return t("새 폴더", "New folder"); }, get rename() { return t("이름 변경", "Rename"); }, get copy() { return t("파일 복사", "Copy files"); }, get move() { return t("파일 이동", "Move files"); }, get recycle() { return t("휴지통", "Recycle Bin"); }, get compress() { return t("압축하기", "Compress"); }, get extract() { return t("압축 해제", "Extract"); } };
 export const terminalOperation = (status: z.infer<typeof operationStatusSchema>) => ['succeeded', 'partially_succeeded', 'cancelled', 'failed', 'interrupted_unknown'].includes(status);
 export const removableOperation = (operation: OperationSnapshot) => operation.journalSaved && ['succeeded', 'partially_succeeded', 'cancelled', 'failed'].includes(operation.status);
 
@@ -74,6 +75,6 @@ export function parseOperationState(value: unknown): OperationState {
 }
 
 export const operationStatusText: Readonly<Record<z.infer<typeof operationStatusSchema>, string>> = {
-  queued: '대기 중', awaiting_user_decision: '확인 대기', running: '실행 중', cancel_requested: '취소 요청됨',
-  succeeded: '완료', partially_succeeded: '일부 완료', cancelled: '취소됨', failed: '실패', interrupted_unknown: '결과 확인 필요',
+  get queued() { return t("대기 중", "Queued"); }, get awaiting_user_decision() { return t("확인 대기", "Awaiting decision"); }, get running() { return t("실행 중", "Running"); }, get cancel_requested() { return t("취소 요청됨", "Cancellation requested"); },
+  get succeeded() { return t("완료", "Completed"); }, get partially_succeeded() { return t("일부 완료", "Partly completed"); }, get cancelled() { return t("취소됨", "Cancelled"); }, get failed() { return t("실패", "Failed"); }, get interrupted_unknown() { return t("결과 확인 필요", "Results need review"); },
 };

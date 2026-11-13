@@ -1,19 +1,21 @@
-const knownTypes: Readonly<Record<string, string>> = {
-  txt: '텍스트 문서', md: 'Markdown 문서', pdf: 'PDF 문서',
-  doc: 'Word 문서', docx: 'Word 문서', xls: 'Excel 문서', xlsx: 'Excel 문서',
-  ppt: 'PowerPoint 문서', pptx: 'PowerPoint 문서',
-  png: 'PNG 이미지', jpg: 'JPEG 이미지', jpeg: 'JPEG 이미지', gif: 'GIF 이미지',
-  zip: 'ZIP 압축 파일', exe: '응용 프로그램', lnk: '바로 가기',
+import { t, locale } from '../../shared/i18n';
+const knownTypes: Readonly<Record<string, readonly [string, string]>> = {
+  txt: ['텍스트 문서', 'Text document'], md: ['Markdown 문서', 'Markdown document'], pdf: ['PDF 문서', 'PDF document'],
+  doc: ['Word 문서', 'Word document'], docx: ['Word 문서', 'Word document'], xls: ['Excel 문서', 'Excel workbook'], xlsx: ['Excel 문서', 'Excel workbook'],
+  ppt: ['PowerPoint 문서', 'PowerPoint presentation'], pptx: ['PowerPoint 문서', 'PowerPoint presentation'],
+  png: ['PNG 이미지', 'PNG image'], jpg: ['JPEG 이미지', 'JPEG image'], jpeg: ['JPEG 이미지', 'JPEG image'], gif: ['GIF 이미지', 'GIF image'],
+  zip: ['ZIP 압축 파일', 'ZIP archive'], exe: ['응용 프로그램', 'Application'], lnk: ['바로 가기', 'Shortcut'],
 };
 
 export function typeLabel(kind: string, name: string): string {
-  if (kind === 'folder') return '폴더';
-  if (kind === 'link') return '링크';
-  if (kind !== 'file') return '확인 불가';
+  if (kind === 'folder') return t('폴더', 'Folder');
+  if (kind === 'link') return t('링크', 'Link');
+  if (kind !== 'file') return t('확인 불가', 'Unknown');
   const dot = name.lastIndexOf('.');
-  if (dot <= 0 || dot === name.length - 1) return '파일';
+  if (dot <= 0 || dot === name.length - 1) return t('파일', 'File');
   const extension = name.slice(dot + 1).toLowerCase();
-  return (Object.hasOwn(knownTypes, extension) ? knownTypes[extension] : undefined) ?? `${extension.toUpperCase()} 파일`;
+  const label = Object.hasOwn(knownTypes, extension) ? knownTypes[extension] : undefined;
+  return label ? t(...label) : t('{extension} 파일', '{extension} file', { extension: extension.toUpperCase() });
 }
 
 export function formatModifiedAt(value: number | null): string {
@@ -29,5 +31,5 @@ export function formatSize(bytes: number | null): string {
   const units = ['KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
   let value = bytes / 1024, unit = 0;
   while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit++; }
-  return `${value.toLocaleString('ko-KR', { maximumFractionDigits: 1 })} ${units[unit]}`;
+  return `${value.toLocaleString(locale(), { maximumFractionDigits: 1 })} ${units[unit]}`;
 }

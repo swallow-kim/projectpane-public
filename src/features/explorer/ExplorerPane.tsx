@@ -1,3 +1,4 @@
+import { t, useLanguage, locale } from '../../shared/i18n';
 import { useCallback, useEffect, useLayoutEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { desktop } from '../../shared/ipc';
 import { faultMessage } from '../../shared/fault';
@@ -44,6 +45,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
   readonly ref: Ref<PaneHandle>;
   readonly activate: () => void;
 }) {
+  useLanguage();
   const nav = usePaneNavigation(pane, initialPath, visible, restored, projectRoot);
   useEffect(() => { onWorkspaceChange?.(); }, [nav.state, onWorkspaceChange]);
   const { tab, location, listing } = nav;
@@ -51,7 +53,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
   const [unavailableWatch, setUnavailableWatch] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
   const [selectionPending, setSelectionPending] = useState(false);
-  const [tabNotice, setTabNotice] = useState<string | null>(null);
+  const [tabNotice, setTabNotice] = useState<readonly [string, string] | null>(null);
   useEffect(() => { setTabNotice(null); }, [tab.id, nav.generation]);
   const selectionPendingRef = useRef(false);
   const pendingRefresh = useRef<string | null>(null);
@@ -93,7 +95,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
     selectTab: id => { nav.setState(value => value.tabs.some(item => item.id === id) ? { ...value, activeId: id } : value); setTabFocusRequest(value => value + 1); },
     openFolder: path => {
       if (tab.source === 'synthetic') {
-        if (nav.state.tabs.length >= 32) { setTabNotice('탭이 32개입니다. 실제 폴더 탭에서 열거나 탭을 닫으세요.'); return; }
+        if (nav.state.tabs.length >= 32) { setTabNotice(["탭이 32개입니다. 실제 폴더 탭에서 열거나 탭을 닫으세요.", "There are 32 tabs. Open this folder in an existing folder tab or close a tab."]); return; }
         nav.add(path);
       } else nav.navigate(path);
       requestAnimationFrame(focusAddress);
@@ -116,7 +118,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
         case 'cancel': return cancelLoading();
         case 'new-tab': nav.add(); requestAnimationFrame(focusAddress); break;
         case 'close-tab':
-          if (tab.protected) { setTabNotice('닫기 보호된 탭입니다. 자물쇠 버튼으로 보호를 해제하세요.'); break; }
+          if (tab.protected) { setTabNotice(["닫기 보호된 탭입니다. 자물쇠 버튼으로 보호를 해제하세요.", "This tab is protected from closing. Use the lock button to unlock it."]); break; }
           nav.close(tab.id); requestAnimationFrame(focusAddress); break;
         case 'reopen-tab': nav.reopen(); requestAnimationFrame(focusAddress); break;
         case 'palette': return false;
@@ -138,7 +140,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
     const selected = draggedId && !location.position.selected.has(draggedId) ? [draggedId] : [...location.position.selected];
     if (!filesReady || composition.current || !selected.length) return null;
     try { return { identity: listing.operationIdentity(tab.id, location.path), entryIds: selected }; }
-    catch { setTabNotice('선택 항목을 확인하지 못했습니다. 목록을 새로 고친 뒤 다시 선택하세요.'); return null; }
+    catch { setTabNotice(["선택 항목을 확인하지 못했습니다. 목록을 새로 고친 뒤 다시 선택하세요.", "Could not verify the selection. Refresh the list and select the items again."]); return null; }
   };
   const transferAction = (action: 'copy' | 'move' | 'paste') => {
     if (!filesReady || composition.current) return;
@@ -156,7 +158,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
   const requestFileAction = (kind: FileActionKind) => {
     if (!filesReady || composition.current || (kind === 'recycle' && !recycleEligible)) return;
     try {
-      if (kind !== 'copy' && kind !== 'move' && kind !== 'new_folder' && location.position.selected.size > 1024) { setTabNotice('이 작업은 한 번에 최대 1,024개를 지원합니다. 선택을 줄여 다시 시도하세요.'); return; }
+      if (kind !== 'copy' && kind !== 'move' && kind !== 'new_folder' && location.position.selected.size > 1024) { setTabNotice(["이 작업은 한 번에 최대 1,024개를 지원합니다. 선택을 줄여 다시 시도하세요.", "This action supports up to 1,024 items at a time. Select fewer items and try again."]); return; }
       if (kind === 'new_folder') listing.operationIdentity(tab.id, location.path);
       const selection = kind === 'new_folder' ? null : captureSelection();
       if (kind !== 'new_folder' && !selection) return;
@@ -164,7 +166,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
         const entry = listing.cache.row(location.position.focusedIndex);
         if (!entry || (kind === 'extract' && (selection?.entryIds.length !== 1 || entry.kind !== 'file'))) return;
         onFileAction?.({ kind, root: location.path, selection,
-          archiveName: kind === 'compress' ? `${selection?.entryIds.length === 1 ? entry.name : '압축 파일'}.zip` : entry.name.replace(/\.(zip|7z|rar|tar|gz|bz2|xz|tgz|egg|alz)$/i, '') + ' (압축 해제)',
+          archiveName: kind === 'compress' ? `${selection?.entryIds.length === 1 ? entry.name : t("압축 파일", "Archive")}.zip` : entry.name.replace(/\.(zip|7z|rar|tar|gz|bz2|xz|tgz|egg|alz)$/i, '') + t(" (압축 해제)", " (extracted)"),
           archiveFormat: entry.name.split('.').at(-1)?.toLowerCase() });
       } else if (kind === 'rename') {
         if (selection?.entryIds.length !== 1) return;
@@ -174,7 +176,7 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
       } else onFileAction?.({ kind, root: location.path, selection });
     } catch { /* A view transition disables file actions until its current snapshot is ready. */ }
   };
-  return <section className="pane" data-pane={pane} hidden={!visible} aria-label={`패널 ${pane + 1}`} onFocusCapture={activate} onPointerDownCapture={activate}
+  return <section className="pane" data-pane={pane} hidden={!visible} aria-label={t('패널 {number}', 'Pane {number}', { number: pane + 1 })} onFocusCapture={activate} onPointerDownCapture={activate}
     onCompositionStartCapture={() => { composition.current = true; setComposing(true); }}
     onCompositionEndCapture={() => { composition.current = false; setComposing(false); }}>
     <div className="pane-header"><TabBar pane={pane} state={nav.state} composing={() => composition.current} select={id => nav.setState(value => ({ ...value, activeId: id }))}
@@ -185,17 +187,17 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
         event.preventDefault();
         if (!composition.current) nav.navigate(tab.draft);
       }}>
-        <button type="button" aria-label="뒤로" title="뒤로 (Alt+←)" disabled={!canNavigate || tab.cursor === 0} onClick={() => nav.travel(-1)}><ArrowLeft size={15} aria-hidden="true" /></button>
-        <button type="button" aria-label="앞으로" title="앞으로 (Alt+→)" disabled={!canNavigate || tab.cursor === tab.history.length - 1} onClick={() => nav.travel(1)}><ArrowRight size={15} aria-hidden="true" /></button>
-        <button type="button" aria-label="상위 폴더" title="상위 폴더 (Alt+↑)" disabled={!canNavigate || parentPath(location.path) === null} onClick={nav.up}><ArrowUp size={15} aria-hidden="true" /></button>
-        <button type="button" aria-label="새로 고침" title="새로 고침 (F5)" disabled={!canNavigate || !location.path} onClick={nav.reload}><RotateCw size={14} aria-hidden="true" /></button>
-        <input title={location.path || tab.draft} ref={address} aria-label={`패널 ${pane + 1} 주소`} placeholder={synthetic ? '한글 IME 입력 시험' : '절대 경로 (예: C:\\Work)'}
+        <button type="button" aria-label={t("뒤로", "Back")} title={t("뒤로 (Alt+←)", "Back (Alt+←)")} disabled={!canNavigate || tab.cursor === 0} onClick={() => nav.travel(-1)}><ArrowLeft size={15} aria-hidden="true" /></button>
+        <button type="button" aria-label={t("앞으로", "Forward")} title={t("앞으로 (Alt+→)", "Forward (Alt+→)")} disabled={!canNavigate || tab.cursor === tab.history.length - 1} onClick={() => nav.travel(1)}><ArrowRight size={15} aria-hidden="true" /></button>
+        <button type="button" aria-label={t("상위 폴더", "Up one level")} title={t("상위 폴더 (Alt+↑)", "Up one level (Alt+↑)")} disabled={!canNavigate || parentPath(location.path) === null} onClick={nav.up}><ArrowUp size={15} aria-hidden="true" /></button>
+        <button type="button" aria-label={t("새로 고침", "Refresh")} title={t("새로 고침 (F5)", "Refresh (F5)")} disabled={!canNavigate || !location.path} onClick={nav.reload}><RotateCw size={14} aria-hidden="true" /></button>
+        <input title={location.path || tab.draft} ref={address} aria-label={t('패널 {number} 주소', 'Pane {number} address', { number: pane + 1 })} placeholder={synthetic ? t("한글 IME 입력 시험", "Korean IME input test") : t("절대 경로 (예: C:\\Work)", "Absolute path (e.g. C:\\Work)")}
           value={tab.draft} onChange={event => nav.update(value => ({ ...value, draft: event.target.value }))}
           onKeyDown={event => {
             if (event.key === 'Enter' && (composition.current || event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault();
           }} />
-        <button type="submit" aria-label="열기" title="입력한 폴더 열기 (Enter)" disabled={!canNavigate || !tab.draft || composing}><CornerDownLeft size={15} aria-hidden="true" /></button>
-        {!synthetic && listing.state.status === 'loading' && <button type="button" onClick={() => listing.stop()}>취소</button>}
+        <button type="submit" aria-label={t("열기", "Open")} title={t("입력한 폴더 열기 (Enter)", "Open the entered folder (Enter)")} disabled={!canNavigate || !tab.draft || composing}><CornerDownLeft size={15} aria-hidden="true" /></button>
+        {!synthetic && listing.state.status === 'loading' && <button type="button" onClick={() => listing.stop()}>{t("취소", "Cancel")}</button>}
       {!synthetic && <FavoriteButtons path={location.path} canNewTab={nav.state.tabs.length < 32} disabled={!canNavigate || composing} open={(path, newTab) => { if (newTab) nav.add(path); else nav.navigate(path); }} />}
       </form></div>
     <div ref={content} className="pane-content" id={`pane-content-${pane}`} role="tabpanel" aria-labelledby={`tab-${tab.id}`}>
@@ -205,33 +207,33 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
       {desktop && <PaneFileActions pane={pane} enabled={filesReady} selected={location.position.selected.size} recycleEligible={recycleEligible} request={requestFileAction}
         transferEnabled={Boolean(transfer) && !transfer?.busy} canPaste={Boolean(transfer?.clipboard)} transfer={transferAction} />}
       </div>
-      {tab.history.length >= 32 && <div className="history-limit" role="status">탐색 기록 최대 32개 · 이전 기록은 자동 정리됩니다.</div>}
+      {tab.history.length >= 32 && <div className="history-limit" role="status">{t("탐색 기록 최대 32개 · 이전 기록은 자동 정리됩니다.", "Up to 32 navigation history entries · Older entries are removed automatically.")}</div>}
       {nav.actionError && <div className="listing-feedback" role="alert">{faultMessage(nav.actionError)}</div>}
-      {tabNotice && <div className="listing-feedback" role="status">{tabNotice}</div>}
-      {nav.state.selectionLimited && <div className="listing-feedback" role="alert">선택 상태 한도에 도달했습니다. 기존 선택을 해제하거나 탭을 닫은 뒤 다시 시도하세요.</div>}
+      {tabNotice && <div className="listing-feedback" role="status">{t(...tabNotice)}</div>}
+      {nav.state.selectionLimited && <div className="listing-feedback" role="alert">{t("선택 상태 한도에 도달했습니다. 기존 선택을 해제하거나 탭을 닫은 뒤 다시 시도하세요.", "The selection state limit has been reached. Clear an existing selection or close a tab, then try again.")}</div>}
       {!synthetic && <ListingFeedback state={listing.state} retry={nav.reload} />}
       {!synthetic && location.path && (!watchablePath(location.path) || unavailableWatch === watchKey)
-        && <div className="listing-feedback" role="status">이 폴더는 자동 갱신 없이 표시됩니다. F5 또는 앱으로 돌아와 목록을 갱신하세요.</div>}
+        && <div className="listing-feedback" role="status">{t("이 폴더는 자동 갱신 없이 표시됩니다. F5 또는 앱으로 돌아와 목록을 갱신하세요.", "This folder does not refresh automatically. Press F5 or return to the app to refresh the list.")}</div>}
       <FileList key={`${nav.generation}/${tab.id}/${location.path}`} pane={pane} visible={visible} synthetic={synthetic} listing={listing} composing={() => composition.current}
         typeFilter={key => viewToolbar.current?.typeFilter(key) ?? false}
         menuActions={canNavigate ? [
-          { label: '열기', disabled: !filesReady || location.position.selected.size !== 1, run: () => { if (location.position.focusedId) nav.activate(location.position.focusedId); } },
-          { label: '탐색기에서 선택 항목 보기', disabled: !filesReady || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('reveal') },
-          { label: 'Windows 메뉴', description: 'Windows가 처리하는 메뉴입니다. 앱 작업 기록과 복구 기능은 적용되지 않습니다.', disabled: !filesReady || transfer?.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('context_menu') },
-          { label: '절대경로 복사', description: '선택 항목의 전체 경로를 텍스트로 복사합니다. 여러 항목은 한 줄씩 복사합니다.', disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('absolute_path') },
-          { label: projectRoot ? '상대경로 복사 (프로젝트 루트 기준)' : '상대경로 복사 (현재 폴더 기준)', description: `${projectRoot ? '프로젝트 루트' : '현재 패널 폴더'} 기준: ${projectRoot ?? location.path} · 여러 항목은 한 줄씩 복사합니다.`, disabled: !filesReady || !location.path || !transfer || transfer.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('relative_path') },
-          { label: 'Windows에 복사', disabled: !filesReady || !location.position.selected.size, run: () => nativeAction('clipboard') },
-          { label: 'Windows에서 붙여넣기', disabled: !filesReady, run: () => nativeAction('system-paste') },
-          { label: '복사 담기', disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size, run: () => transferAction('copy') },
-          { label: '잘라내기', disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size, run: () => transferAction('move') },
-          { label: '앱에 붙여넣기', disabled: !filesReady || !transfer?.clipboard || transfer.busy, run: () => transferAction('paste') },
-          { label: '압축하기…', disabled: !filesReady || !location.position.selected.size || location.position.selected.size > 1024, run: () => requestFileAction('compress') },
-          ...(/\.(zip|7z|rar|tar|gz|bz2|xz|tgz|egg|alz)$/i.test(listing.cache.row(location.position.focusedIndex)?.name ?? '') && location.position.selected.size === 1 ? [{ label: '압축 해제…', disabled: !filesReady, run: () => requestFileAction('extract') }] : []),
-          { label: '이름 변경', shortcut: 'F2', disabled: !filesReady || location.position.selected.size !== 1, run: () => requestFileAction('rename') },
-          { label: '휴지통으로 이동', shortcut: 'Delete', disabled: !filesReady || !recycleEligible || !location.position.selected.size, run: () => requestFileAction('recycle') },
-          { label: 'Windows 속성', shortcut: 'Alt+Enter', disabled: !filesReady || location.position.selected.size !== 1, run: () => nativeAction('properties') },
-          { label: '새 폴더', disabled: !filesReady, run: () => requestFileAction('new_folder') },
-          { label: '새로 고침', run: nav.reload },
+          { label: t("열기", "Open"), disabled: !filesReady || location.position.selected.size !== 1, run: () => { if (location.position.focusedId) nav.activate(location.position.focusedId); } },
+          { label: t("탐색기에서 선택 항목 보기", "Show selected items in Explorer"), disabled: !filesReady || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('reveal') },
+          { label: t("Windows 메뉴", "Windows menu"), description: t("Windows가 처리하는 메뉴입니다. 앱 작업 기록과 복구 기능은 적용되지 않습니다.", "Windows handles these actions. App operation history and recovery do not apply."), disabled: !filesReady || transfer?.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('context_menu') },
+          { label: t("절대경로 복사", "Copy absolute path"), description: t("선택 항목의 전체 경로를 텍스트로 복사합니다. 여러 항목은 한 줄씩 복사합니다.", "Copy the full paths of selected items as text, one item per line."), disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('absolute_path') },
+          { label: projectRoot ? t("상대경로 복사 (프로젝트 루트 기준)", "Copy relative path (project root)") : t("상대경로 복사 (현재 폴더 기준)", "Copy relative path (current folder)"), description: t('{base} 기준: {path} · 여러 항목은 한 줄씩 복사합니다.', 'Relative to {base}: {path} · One item per line.', { base: projectRoot ? t('프로젝트 루트', 'project root') : t('현재 패널 폴더', 'current pane folder'), path: projectRoot ?? location.path }), disabled: !filesReady || !location.path || !transfer || transfer.busy || !location.position.selected.size || location.position.selected.size > 128, run: () => nativeAction('relative_path') },
+          { label: t("Windows에 복사", "Copy to Windows clipboard"), disabled: !filesReady || !location.position.selected.size, run: () => nativeAction('clipboard') },
+          { label: t("Windows에서 붙여넣기", "Paste from Windows clipboard"), disabled: !filesReady, run: () => nativeAction('system-paste') },
+          { label: t("복사 담기", "Copy"), disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size, run: () => transferAction('copy') },
+          { label: t("잘라내기", "Cut"), disabled: !filesReady || !transfer || transfer.busy || !location.position.selected.size, run: () => transferAction('move') },
+          { label: t("앱에 붙여넣기", "Paste in app"), disabled: !filesReady || !transfer?.clipboard || transfer.busy, run: () => transferAction('paste') },
+          { label: t("압축하기…", "Compress…"), disabled: !filesReady || !location.position.selected.size || location.position.selected.size > 1024, run: () => requestFileAction('compress') },
+          ...(/\.(zip|7z|rar|tar|gz|bz2|xz|tgz|egg|alz)$/i.test(listing.cache.row(location.position.focusedIndex)?.name ?? '') && location.position.selected.size === 1 ? [{ label: t("압축 해제…", "Extract…"), disabled: !filesReady, run: () => requestFileAction('extract') }] : []),
+          { label: t("이름 변경", "Rename"), shortcut: 'F2', disabled: !filesReady || location.position.selected.size !== 1, run: () => requestFileAction('rename') },
+          { label: t("휴지통으로 이동", "Move to Recycle Bin"), shortcut: 'Delete', disabled: !filesReady || !recycleEligible || !location.position.selected.size, run: () => requestFileAction('recycle') },
+          { label: t("Windows 속성", "Windows properties"), shortcut: 'Alt+Enter', disabled: !filesReady || location.position.selected.size !== 1, run: () => nativeAction('properties') },
+          { label: t("새 폴더", "New folder"), disabled: !filesReady, run: () => requestFileAction('new_folder') },
+          { label: t("새로 고침", "Refresh"), run: nav.reload },
         ] : undefined}
         onSelectionPending={changeSelectionPending}
         cancelTransfer={transfer?.clear}
@@ -250,6 +252,6 @@ export function ExplorerPane({ pane, initialPath, projectRoot, visible, ref, act
           return next === previous ? state : updateTab(state, rememberPosition(target, next));
         })} onActivate={nav.activate} />
     </div>
-    <footer><span role="status">{synthetic ? '합성 데이터' : listingStatus(listing.state)} · {(synthetic ? 100_000 : listing.state.total).toLocaleString()}개</span><span className="selection-status" aria-live="polite">{location.position.selected.size.toLocaleString()}개 선택</span><span>{synthetic ? '가상 목록' : listing.state.firstBatchMs !== undefined ? `첫 배치 ${listing.state.firstBatchMs.toFixed(1)}ms` : '읽기 전용'}</span></footer>
+    <footer><span role="status">{synthetic ? t("합성 데이터", "Synthetic data") : listingStatus(listing.state)} · {t('{count}개', '{count} items', { count: (synthetic ? 100_000 : listing.state.total).toLocaleString(locale()) })}</span><span className="selection-status" aria-live="polite">{t('{count}개 선택', '{count} selected', { count: location.position.selected.size.toLocaleString(locale()) })}</span><span>{synthetic ? t("가상 목록", "Virtual list") : listing.state.firstBatchMs !== undefined ? t('첫 배치 {ms}ms', 'First batch {ms}ms', { ms: listing.state.firstBatchMs.toFixed(1) }) : t("읽기 전용", "Read only")}</span></footer>
   </section>;
 }

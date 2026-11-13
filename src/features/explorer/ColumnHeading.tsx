@@ -1,3 +1,4 @@
+import { t, useLanguage } from '../../shared/i18n';
 import { useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { clampColumn, COLUMN_LABELS, COLUMN_MAX, COLUMN_MIN, columnMinimumWidth, columnStorageKey, columnTemplate, DEFAULT_COLUMNS, parseColumns, type ColumnWidths } from './column-widths';
 import './columns.css';
@@ -14,6 +15,7 @@ export function useColumnWidths(pane: number) {
 }
 
 export function ColumnHeading({ widths, change }: { widths: ColumnWidths; change: (next: ColumnWidths, persist: boolean) => void }) {
+  useLanguage();
   const drag = useRef<{ pointerId: number; startX: number; startWidth: number; index: number; original: ColumnWidths; next: ColumnWidths } | null>(null);
   const [resizing, setResizing] = useState(false);
   const finish = (event: PointerEvent<HTMLElement>, commit: boolean) => {
@@ -24,11 +26,11 @@ export function ColumnHeading({ widths, change }: { widths: ColumnWidths; change
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
   return <div className="column-heading marquee-heading" data-resizing={resizing}>
-    {COLUMN_LABELS.map((label, index) => <span className="column-label" key={label} title={index === 3 ? 'PC 현지 시간' : undefined}>
-      {label}
+    {COLUMN_LABELS.map((labelKo, index) => <span className="column-label" key={labelKo} title={index === 3 ? t("PC 현지 시간", "PC local time") : undefined}>
+      {t(labelKo, ['Name', 'Type', 'Size', 'Date modified'][index])}
       <span className="column-resizer" role="separator" aria-orientation="vertical" tabIndex={0}
-        aria-label={`${label} 열 너비`} aria-valuemin={COLUMN_MIN[index]} aria-valuemax={COLUMN_MAX} aria-valuenow={widths[index] ?? COLUMN_MIN[index]} aria-valuetext={widths[index] === null ? '자동 너비' : `${widths[index]} 픽셀`}
-        title="드래그 또는 좌우 화살표로 너비 조절 · 두 번 클릭하면 기본 너비"
+        aria-label={t('{label} 열 너비', '{label} column width', { label: t(labelKo, ['Name', 'Type', 'Size', 'Date modified'][index]) })} aria-valuemin={COLUMN_MIN[index]} aria-valuemax={COLUMN_MAX} aria-valuenow={widths[index] ?? COLUMN_MIN[index]} aria-valuetext={widths[index] === null ? t("자동 너비", "Automatic width") : t('{width} 픽셀', '{width} pixels', { width: widths[index] ?? 0 })}
+        title={t("드래그 또는 좌우 화살표로 너비 조절 · 두 번 클릭하면 기본 너비", "Drag or use Left/Right arrows to resize · Double-click to reset")}
         onPointerDown={event => {
           if (event.button !== 0 || drag.current) return;
           event.preventDefault(); event.stopPropagation(); event.currentTarget.focus();

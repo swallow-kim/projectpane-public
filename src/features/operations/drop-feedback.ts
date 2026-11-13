@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n';
 // One lightweight overlay shared by native and internal drags. It never changes
 // a list's dimensions, scroll extent, or React selection state.
 let highlighted: HTMLElement | null = null;
@@ -18,7 +19,7 @@ export function showDropFeedback(x: number, y: number, mode: 'copy' | 'move') {
     hint = document.createElement('div'); hint.className = 'file-drop-hint';
     hint.setAttribute('role', 'status'); document.body.append(hint);
   }
-  const message = mode === 'move' ? '놓으면 이동 위치를 확인합니다' : '놓으면 여기에 복사합니다';
+  const message = mode === 'move' ? t("놓으면 이동 위치를 확인합니다", "Drop to review the move destination") : t("놓으면 여기에 복사합니다", "Drop to copy here");
   if (hint.textContent !== message) hint.textContent = message;
   const rect = list.getBoundingClientRect();
   hint.style.left = `${Math.max(4, rect.left + 8)}px`;

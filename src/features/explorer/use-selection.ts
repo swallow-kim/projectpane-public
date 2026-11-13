@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
-import { faultMessage, toFaultCode } from '../../shared/fault';
+import { faultMessage, toFaultCode, type FaultCode } from '../../shared/fault';
 import type { ListingController } from './listing';
 import type { ListPosition, PositionUpdate } from './navigation';
 import { syntheticRow } from './synthetic';
@@ -29,7 +29,7 @@ export function useSelection(options: SelectionOptions) {
     setPendingState(value);
     latest.current.onPending?.(value);
   };
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FaultCode | null>(null);
   useEffect(() => () => { sequence.current++; abort.current?.abort(); latest.current.onPending?.(false); }, []);
   const revision = options.synthetic ? 0 : options.listing.state.revision;
   useLayoutEffect(() => { requestedIndex.current = null; }, [revision]);
@@ -88,7 +88,7 @@ export function useSelection(options: SelectionOptions) {
     } catch (cause) {
       const code = toFaultCode(cause);
       if (token === sequence.current) requestedIndex.current = null;
-      if (token === sequence.current && code !== 'stale_request' && code !== 'cancelled') setError(faultMessage(code));
+      if (token === sequence.current && code !== 'stale_request' && code !== 'cancelled') setError(code);
     } finally { if (token === sequence.current) setPending(false); }
   };
   const all = async () => {
@@ -103,7 +103,7 @@ export function useSelection(options: SelectionOptions) {
       if (token === sequence.current) latest.current.onPosition(current => ({ ...current, selected }));
     } catch (cause) {
       const code = toFaultCode(cause);
-      if (token === sequence.current && code !== 'stale_request' && code !== 'cancelled') setError(faultMessage(code));
+      if (token === sequence.current && code !== 'stale_request' && code !== 'cancelled') setError(code);
     } finally { if (token === sequence.current) setPending(false); }
   };
   const cancel = () => { sequence.current++; requestedIndex.current = null; abort.current?.abort(); setPending(false); };
@@ -128,8 +128,8 @@ export function useSelection(options: SelectionOptions) {
         anchorId: focusedId ?? current.anchorId }));
     } catch (cause) {
       const code = toFaultCode(cause);
-      if (token === sequence.current && code !== 'stale_request' && code !== 'cancelled') setError(faultMessage(code));
+      if (token === sequence.current && code !== 'stale_request' && code !== 'cancelled') setError(code);
     } finally { if (token === sequence.current) setPending(false); }
   };
-  return { select, all, marquee, cancel, pending, error, focusIndex };
+  return { select, all, marquee, cancel, pending, error: error ? faultMessage(error) : null, focusIndex };
 }

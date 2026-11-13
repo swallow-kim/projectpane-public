@@ -1,3 +1,5 @@
+import { t, useLanguage } from '../shared/i18n';
+import { LanguageControl } from '../shared/LanguageControl';
 import { CopyJobTray } from '../features/operations/CopyJobTray';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Splitter, type LayoutCount } from './Splitter';
@@ -29,14 +31,15 @@ import { QuickPalette } from '../features/navigation/QuickPalette';
 import { paletteItems, type PaletteItem, type PaletteAction } from '../features/navigation/palette';
 import { UpdateControl } from '../features/updates/UpdateControl';
 
-const warningMessages = {
-  state_unavailable: '창 위치를 저장할 수 없습니다.',
-  state_invalid: '저장된 창 위치를 읽지 못해 기본 위치로 시작했습니다.',
-  log_unavailable: '진단 기록을 저장할 수 없습니다.',
-  window_restore_failed: '창 위치를 복원하지 못해 기본 위치로 시작했습니다.',
-};
+const warningMessages = () => ({
+  state_unavailable: t("창 위치를 저장할 수 없습니다.", "The window position could not be saved."),
+  state_invalid: t("저장된 창 위치를 읽지 못해 기본 위치로 시작했습니다.", "The saved window position could not be read. The default position was used."),
+  log_unavailable: t("진단 기록을 저장할 수 없습니다.", "Diagnostic logs could not be saved."),
+  window_restore_failed: t("창 위치를 복원하지 못해 기본 위치로 시작했습니다.", "The window position could not be restored. The default position was used."),
+});
 
 export function App({ startup }: { readonly startup: StartupConfig }) {
+  useLanguage();
   const favorites = useFavoritesStore();
   const [showFavorites, setShowFavorites] = useState(false);
   const [updatePreparing, setUpdatePreparing] = useState(false);
@@ -198,34 +201,35 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
     {showFavorites && <FavoritesDialog close={() => setShowFavorites(false)} />}
     {palette && <QuickPalette items={palette} dismiss={() => setPalette(null)} run={runPalette} />}
     <header className="app-header"><h1>ProjectPane</h1>
+      <LanguageControl />
       {desktop && <UpdateControl ready={projects.ready} persisted={Boolean(projects.toolbar.selectedId) && !projects.toolbar.readOnly} onPreparing={setUpdatePreparing} />}
       {desktop && <CopyJobTray revision={transfer.copyRevision} refresh={refreshFiles} />}
       {desktop && <OperationTray state={operations.state} unavailable={operations.error || operations.state?.closeState === 'blocked'} refresh={operations.refresh} />}
-      <button className="favorites-manage" disabled={!projects.ready || projects.busy || closing} title="프로젝트·탭·즐겨찾기·최근 폴더·명령 (Ctrl+Shift+P)" onClick={openPalette}>빠른 이동</button>
-      {desktop && <button className="favorites-manage" onClick={() => setShowFavorites(true)}>즐겨찾기 관리</button>}
-      <div inert={projects.busy} className="layout-toolbar" role="group" aria-label="패널 분할">
-        {([1, 2, 4] as const).map(count => <button key={count} aria-pressed={layout === count} onClick={() => changeLayout(count)}>{count}패널</button>)}
+      <button className="favorites-manage" disabled={!projects.ready || projects.busy || closing} title={t("프로젝트·탭·즐겨찾기·최근 폴더·명령 (Ctrl+Shift+P)", "Projects, tabs, favorites, recent folders and commands (Ctrl+Shift+P)")} onClick={openPalette}>{t("빠른 이동", "Quick navigation")}</button>
+      {desktop && <button className="favorites-manage" onClick={() => setShowFavorites(true)}>{t("즐겨찾기 관리", "Manage favorites")}</button>}
+      <div inert={projects.busy} className="layout-toolbar" role="group" aria-label={t("패널 분할", "Pane layout")}>
+        {([1, 2, 4] as const).map(count => <button key={count} aria-pressed={layout === count} onClick={() => changeLayout(count)}>{t('{count}패널', count === 1 ? '{count} pane' : '{count} panes', { count })}</button>)}
       </div>
-      <details className="app-help"><summary>도움말</summary><div>
-        <p>라이선스·제3자 고지와 MPL 소스 안내: 앱 실행 파일 옆 licenses 폴더. 설치형 기본 위치는 %LOCALAPPDATA%\ProjectPane\licenses입니다.</p>
-        <p>Windows 복사/붙여넣기: Ctrl+C / V · 앱 안 잘라내기: Ctrl+X</p>
-        <p>앱 보관 복사/붙여넣기: Ctrl+Shift+C / V · 외부 끌기: 복사만</p>
-        <p>WSL·네트워크는 복사, 파일 이동은 로컬 고정 드라이브를 지원합니다. 다른 드라이브의 폴더 이동은 로컬 NTFS의 일반 폴더에 한정합니다. 휴지통은 고정 드라이브의 파일과 폴더를 지원합니다.</p>
-        {!desktop && <p>브라우저 합성 목록 시험 · 실제 파일 조회는 데스크톱 앱에서 실행하세요.</p>}
+      <details className="app-help"><summary>{t("도움말", "Help")}</summary><div>
+        <p>{t("라이선스·제3자 고지와 MPL 소스 안내: 앱 실행 파일 옆 licenses 폴더. 설치형 기본 위치는 %LOCALAPPDATA%\\ProjectPane\\licenses입니다.", "Licenses, third-party notices and MPL source information are in the licenses folder beside the app. The default installed location is %LOCALAPPDATA%\\ProjectPane\\licenses.")}</p>
+        <p>{t("Windows 복사/붙여넣기: Ctrl+C / V · 앱 안 잘라내기: Ctrl+X", "Windows copy/paste: Ctrl+C / V · Cut within the app: Ctrl+X")}</p>
+        <p>{t("앱 보관 복사/붙여넣기: Ctrl+Shift+C / V · 외부 끌기: 복사만", "In-app clipboard copy/paste: Ctrl+Shift+C / V · External drag: copy only")}</p>
+        <p>{t("WSL·네트워크는 복사, 파일 이동은 로컬 고정 드라이브를 지원합니다. 다른 드라이브의 폴더 이동은 로컬 NTFS의 일반 폴더에 한정합니다. 휴지통은 고정 드라이브의 파일과 폴더를 지원합니다.", "Copy is supported for WSL and network locations. File moves require local fixed drives. Cross-drive folder moves require regular folders on local NTFS drives. Recycling supports files and folders on fixed drives.")}</p>
+        {!desktop && <p>{t("브라우저 합성 목록 시험 · 실제 파일 조회는 데스크톱 앱에서 실행하세요.", "Browser preview with synthetic files. Use the desktop app to browse actual files.")}</p>}
       </div></details>
     </header>
-    {startup.error && <div className="notice" role="alert">시작 경로를 적용하지 못했습니다. --folder 옵션을 확인하거나 경로를 직접 입력하세요.</div>}
-    {startup.warnings.map(warning => <div className="notice" role="alert" key={warning}>{warningMessages[warning]}</div>)}
-    {watchFailed && <div className="notice" role="status">자동 갱신을 사용할 수 없습니다. F5 또는 앱으로 돌아와 목록을 갱신하세요.</div>}
+    {startup.error && <div className="notice" role="alert">{t("시작 경로를 적용하지 못했습니다. --folder 옵션을 확인하거나 경로를 직접 입력하세요.", "The startup path could not be applied. Check the --folder option or enter a path.")}</div>}
+    {startup.warnings.map(warning => <div className="notice" role="alert" key={warning}>{warningMessages()[warning]}</div>)}
+    {watchFailed && <div className="notice" role="status">{t("자동 갱신을 사용할 수 없습니다. F5 또는 앱으로 돌아와 목록을 갱신하세요.", "Automatic refresh is unavailable. Press F5 or return to the app to refresh.")}</div>}
     {desktop && projects.available && <ProjectToolbar {...projects.toolbar} />}
-    {desktop && projects.ready && !projects.available && <div className="notice" role="status">프로젝트 저장 서비스를 사용할 수 없습니다. <button onClick={projects.toolbar.onRetry}>프로젝트 다시 시도</button></div>}
-    {projects.toolbar.readOnly && <div className="notice"><button disabled={projects.busy} onClick={projects.recoverAsNew}>현재 상태를 새 프로젝트로 저장</button></div>}
-    {projects.warnings.length > 0 && <div className="notice" role="alert">저장된 상태를 복구하거나 일부 상태를 적용하지 못했습니다. {projects.toolbar.readOnly ? "원본 보호를 위해 저장을 차단했습니다." : "현재 상태를 확인하세요."}</div>}
-    {!projects.ready && <div className="notice" role="status">프로젝트 불러오는 중…</div>}
+    {desktop && projects.ready && !projects.available && <div className="notice" role="status">{t("프로젝트 저장 서비스를 사용할 수 없습니다. ", "Project storage is unavailable. ")}<button onClick={projects.toolbar.onRetry}>{t("프로젝트 다시 시도", "Retry project storage")}</button></div>}
+    {projects.toolbar.readOnly && <div className="notice"><button disabled={projects.busy} onClick={projects.recoverAsNew}>{t("현재 상태를 새 프로젝트로 저장", "Save current state as a new project")}</button></div>}
+    {projects.warnings.length > 0 && <div className="notice" role="alert">{t("저장된 상태를 복구하거나 일부 상태를 적용하지 못했습니다. ", "The saved state was recovered or could not be fully applied. ")}{projects.toolbar.readOnly ? t("원본 보호를 위해 저장을 차단했습니다.", "Saving is blocked to protect the original.") : t("현재 상태를 확인하세요.", "Please review the current state.")}</div>}
+    {!projects.ready && <div className="notice" role="status">{t("프로젝트 불러오는 중…", "Loading projects…")}</div>}
     {fileAction && (fileAction.kind === 'recycle'
       ? <RecycleDialog draft={fileAction} projectId={projects.toolbar.selectedId} close={() => changeFileAction(null)} submitted={operations.refresh} />
       : <FileActionDialog draft={fileAction} projectId={projects.toolbar.selectedId} close={() => changeFileAction(null)} submitted={() => { transfer.submitted(fileAction); operations.refresh(); }} />)}
-    <div className="explorer-workspace" id="project-workspace" role={desktop && projects.available ? 'tabpanel' : undefined} aria-label="현재 프로젝트 탐색기">
+    <div className="explorer-workspace" id="project-workspace" role={desktop && projects.available ? 'tabpanel' : undefined} aria-label={t("현재 프로젝트 탐색기", "Current project explorer")}>
     <div inert={projects.busy} className={`panes layout-${layout}`} style={{ gridTemplateColumns: layout === 1 ? 'minmax(0, 1fr)' : `minmax(0, ${columns}fr) 0px minmax(0, ${100 - columns}fr)`, gridTemplateRows: layout === 4 ? `minmax(min-content, ${rows}fr) 0px minmax(min-content, ${100 - rows}fr)` : 'minmax(min-content, 1fr)' }}>
       {projects.ready && [0, 1, 2, 3].map(pane => <ExplorerPane key={pane} pane={pane} visible={pane < layout} initialPath={projects.rootPath ?? startup.folders[pane]} projectRoot={projects.rootPath}
         restored={restored?.[pane]} onWorkspaceChange={projects.capture} fileActionsAvailable={operations.available && !projects.busy} onFileAction={changeFileAction} transfer={transfer}
@@ -235,9 +239,9 @@ export function App({ startup }: { readonly startup: StartupConfig }) {
     </div>
     </div>
     {desktop && <div className="app-status">
-      {favorites.error && <div className="notice" role="alert">{favorites.error} <button disabled={favorites.busy} onClick={() => void favorites.reload()}>즐겨찾기 다시 불러오기</button></div>}
-      <div className="transfer-status" role="status">{transfer.busy ? (transfer.stage ?? '파일 요청 처리 중…') : transfer.notice ? transfer.notice : transfer.clipboard ? `앱 안에 ${transfer.clipboard.mode === 'copy' ? '복사' : '잘라내기'} ${transfer.clipboard.count}개 담음 · ${transfer.clipboard.mode === 'move' ? '앱 안에서 Ctrl+V (Windows 잘라내기 아님)' : 'Ctrl+Shift+V'}` : '준비됨'}</div>
-      {transfer.canCancelPreparing && <button onClick={transfer.cancelPreparing}>항목 수집 취소</button>}
+      {favorites.error && <div className="notice" role="alert">{favorites.error} <button disabled={favorites.busy} onClick={() => void favorites.reload()}>{t("즐겨찾기 다시 불러오기", "Reload favorites")}</button></div>}
+      <div className="transfer-status" role="status">{transfer.busy ? (transfer.stage ?? t("파일 요청 처리 중…", "Processing file request…")) : transfer.notice ? transfer.notice : transfer.clipboard ? t('앱 안에 {mode} {count}개 담음 · {shortcut}', '{count} items ready to {mode} · {shortcut}', { mode: transfer.clipboard.mode === 'copy' ? t('복사', 'copy') : t('잘라내기', 'cut'), count: transfer.clipboard.count, shortcut: transfer.clipboard.mode === 'move' ? t('앱 안에서 Ctrl+V (Windows 잘라내기 아님)', 'Ctrl+V within the app (not Windows cut)') : 'Ctrl+Shift+V' }) : t("준비됨", "Ready")}</div>
+      {transfer.canCancelPreparing && <button onClick={transfer.cancelPreparing}>{t("항목 수집 취소", "Cancel collection")}</button>}
       {transfer.error && <div className="notice" role="alert">{transfer.error}</div>}
 
     </div>}

@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n';
 export const MAX_TABS = 32;
 const MAX_HISTORY = 32;
 const MAX_HISTORY_BYTES = 64 * 1024;
@@ -64,9 +65,9 @@ export function currentLocation(tab: ExplorerTab): Location {
   return tab.history[tab.cursor] ?? { path: '', position: emptyPosition() };
 }
 export function tabLabel(tab: ExplorerTab): string {
-  if (tab.source === 'synthetic') return '10만 항목';
+  if (tab.source === 'synthetic') return t("10만 항목", "100,000 items");
   const path = currentLocation(tab).path;
-  return path.replace(/[\\/]+$/, '').split(/[\\/]/).at(-1) || path || '실제 폴더';
+  return path.replace(/[\\/]+$/, '').split(/[\\/]/).at(-1) || path || t("실제 폴더", "Folder");
 }
 export function updateTab(pane: PaneState, tab: ExplorerTab): PaneState {
   const tabs = pane.tabs.map(value => value.id === tab.id ? tab : value);

@@ -1,3 +1,5 @@
+import { projectErrorText } from './project-error-text';
+import { t, useLanguage } from '../../shared/i18n';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { desktop } from '../../shared/ipc';
 import type { StartupConfig } from '../../shared/startup';
@@ -11,6 +13,7 @@ import { listenForProjectClose } from './project-close';
 const client = createProjectClient();
 export function useProjectWorkspace(startup: StartupConfig, snapshot: (root: string) => Workspace | null,
   apply: (loaded: LoadedProject | null) => void, beforeClose: (milliseconds: number) => Promise<boolean> = async () => true) {
+  useLanguage();
   const latest = useRef({ snapshot, apply, beforeClose });
   latest.current = { snapshot, apply, beforeClose };
   const [, render] = useState(0);
@@ -56,8 +59,8 @@ export function useProjectWorkspace(startup: StartupConfig, snapshot: (root: str
   };
   const toolbar: ProjectToolbarProps = {
     projects: state?.projects ?? [], selectedId: state?.selected?.id ?? null,
-    saving: state?.busy ?? true, error: localError ?? state?.error, readOnly: state?.readOnly,
-    saveStatusText: !state?.selected ? '임시 작업 공간 · 자동 저장 안 함' : state.readOnly ? '복구 상태 · 저장 차단됨' : ({ dirty: '변경 사항 저장 대기', saving: '세션 저장 중…', saved: '마지막 작업 상태 저장됨', error: '세션 저장 실패' } as const)[state.status],
+    saving: state?.busy ?? true, error: projectErrorText(localError ?? state?.error), readOnly: state?.readOnly,
+    saveStatusText: !state?.selected ? t("임시 작업 공간 · 자동 저장 안 함", "Temporary workspace · Not saved automatically") : state.readOnly ? t("복구 상태 · 저장 차단됨", "Recovery mode · Saving disabled") : ({ dirty: t("변경 사항 저장 대기", "Changes waiting to be saved"), saving: t("세션 저장 중…", "Saving session…"), saved: t("마지막 작업 상태 저장됨", "Last workspace saved"), error: t("세션 저장 실패", "Session save failed") } as const)[state.status],
     onSelect: id => withCapture(current => current.select(id)),
     onCreate: ({ name, rootPath }) => withCapture(current => current.mutate(async () => {
       const workspace = latest.current.snapshot(rootPath);
@@ -75,6 +78,6 @@ export function useProjectWorkspace(startup: StartupConfig, snapshot: (root: str
     onRetry: () => withCapture(current => current.retry()),
   };
   return { rootPath: state?.selected?.rootPath, available: state?.available ?? false, ready: !desktop || (state?.ready ?? false), busy: state?.busy ?? false, toolbar, capture,
-    recoverAsNew: () => { const project = state?.selected; if (project) toolbar.onCreate({ name: '복구한 프로젝트', rootPath: project.rootPath }); },
+    recoverAsNew: () => { const project = state?.selected; if (project) toolbar.onCreate({ name: t("복구한 프로젝트", "Recovered project"), rootPath: project.rootPath }); },
     warnings: state?.warnings ?? [], closeWithin: (milliseconds: number) => controller.current?.closeWithin(milliseconds) ?? Promise.resolve(true) };
 }

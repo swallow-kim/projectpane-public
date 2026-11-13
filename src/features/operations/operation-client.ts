@@ -1,3 +1,4 @@
+import { t } from '../../shared/i18n';
 import { invoke } from '@tauri-apps/api/core';
 import { z } from 'zod';
 import { MAX_FRAME } from '../../shared/contracts';
@@ -102,27 +103,27 @@ export async function forgetFileAction(id: string): Promise<void> {
 }
 export function operationError(error: unknown, kind?: FileActionKind | 'copy_as' | 'copy_skip_existing'): string {
   switch (toFaultCode(error)) {
-    case 'destination_streams_unsupported': return '대상 저장소는 이 항목의 추가 데이터 스트림(ADS)을 보존할 수 없어 복사를 중단했습니다. 해당 항목은 새로 만들지 않았습니다. ADS를 지원하는 대상 저장소를 선택하세요.';
-    case 'unsupported_provider': return '이 저장소는 안전한 복사에 필요한 파일 식별 또는 생성 기능을 지원하지 않습니다. 원본과 대상 저장소를 확인하세요.';
-    case 'unsafe_reparse_point': return '선택한 항목이나 상위 경로에 심볼릭 링크 또는 재분석 지점이 있어 처리하지 않았습니다. 링크를 따라가지 않습니다. 링크가 없는 실제 원본 경로와 대상 폴더를 직접 선택하세요.';
-    case 'destination_exists': return '대상에 같은 이름의 항목이 있습니다. 기존 항목은 변경하지 않았습니다. 건너뛰기 또는 다른 이름으로 복사를 선택할 수 있습니다.';
-    case 'busy': return '대상 이름이 이미 있거나 다른 작업을 처리 중입니다. 경로와 작업 상태를 확인하세요.';
-    case 'stale_request': return '선택한 항목이 바뀌었습니다. 목록을 새로 고친 뒤 다시 선택하세요.';
+    case 'destination_streams_unsupported': return t("대상 저장소는 이 항목의 추가 데이터 스트림(ADS)을 보존할 수 없어 복사를 중단했습니다. 해당 항목은 새로 만들지 않았습니다. ADS를 지원하는 대상 저장소를 선택하세요.", "Copying stopped because the destination cannot preserve this item’s alternate data streams (ADS). The item was not created. Choose destination storage that supports ADS.");
+    case 'unsupported_provider': return t("이 저장소는 안전한 복사에 필요한 파일 식별 또는 생성 기능을 지원하지 않습니다. 원본과 대상 저장소를 확인하세요.", "This storage does not support the file identification or creation features required for safe copying. Check the source and destination storage.");
+    case 'unsafe_reparse_point': return t("선택한 항목이나 상위 경로에 심볼릭 링크 또는 재분석 지점이 있어 처리하지 않았습니다. 링크를 따라가지 않습니다. 링크가 없는 실제 원본 경로와 대상 폴더를 직접 선택하세요.", "The selected item or a parent path contains a symbolic link or reparse point and was not processed. Links are not followed. Select the actual source path and destination folder without links.");
+    case 'destination_exists': return t("대상에 같은 이름의 항목이 있습니다. 기존 항목은 변경하지 않았습니다. 건너뛰기 또는 다른 이름으로 복사를 선택할 수 있습니다.", "An item with the same name exists at the destination. It was not changed. You can skip it or copy with a different name.");
+    case 'busy': return t("대상 이름이 이미 있거나 다른 작업을 처리 중입니다. 경로와 작업 상태를 확인하세요.", "The destination name already exists or another operation is in progress. Check the path and operation status.");
+    case 'stale_request': return t("선택한 항목이 바뀌었습니다. 목록을 새로 고친 뒤 다시 선택하세요.", "The selected items have changed. Refresh the list and select them again.");
     case 'invalid_request': case 'invalid_path': return kind === 'copy_skip_existing'
-      ? '기존 파일 건너뛰기는 고정 드라이브의 일반 파일만 지원합니다. 폴더·링크·원본과 같은 대상은 지원하지 않습니다.'
+      ? t("기존 파일 건너뛰기는 고정 드라이브의 일반 파일만 지원합니다. 폴더·링크·원본과 같은 대상은 지원하지 않습니다.", "Skipping existing files supports ordinary files on fixed drives only. Folders, links, and destinations identical to the source are not supported.")
       : kind === 'copy_as'
-      ? '새 이름으로 복사는 고정 드라이브의 일반 파일 하나만 지원합니다. 이름에는 경로 구분자를 넣을 수 없습니다. 원본과 대상 경로·파일명을 확인하세요.'
+      ? t("새 이름으로 복사는 고정 드라이브의 일반 파일 하나만 지원합니다. 이름에는 경로 구분자를 넣을 수 없습니다. 원본과 대상 경로·파일명을 확인하세요.", "Copying with a new name supports one ordinary file on a fixed drive. The name cannot contain path separators. Check the source, destination, and filename.")
       : kind === 'recycle'
-      ? '선택한 항목을 휴지통으로 보낼 수 없습니다. 고정 드라이브의 일반 파일·폴더만 지원합니다. 링크가 포함된 폴더·휴지통 안의 항목·이동식 및 네트워크 드라이브는 삭제하지 않습니다.'
-      : kind === 'compress' || kind === 'extract' ? '기본 ZIP은 일반 파일·폴더, UTF-8 이름, 최대 2,048항목·1GiB를 지원합니다. 암호화·ZIP64·링크·중복 이름·잘못된 경로는 지원하지 않습니다. 설치된 압축 앱을 선택할 수 있습니다.'
-      : '경로·연결 상태·권한을 확인하세요. 링크와 자기 안으로 복사는 지원하지 않습니다. 다른 드라이브 폴더 이동은 링크·암호화·폴더 추가 데이터가 없는 로컬 NTFS 폴더만 지원합니다. WSL 이동은 같은 배포판·볼륨 안에서만 지원합니다. Windows↔WSL·다른 배포판·일반 네트워크 사이는 복사를 사용하세요.';
-    case 'access_denied': return '이 항목을 변경할 권한이 없거나 다른 앱이 사용 중입니다.';
-    case 'not_found': return '원본이나 대상 폴더를 찾을 수 없습니다. 목록을 새로 고친 뒤 경로를 확인하세요.';
-    case 'worker_unavailable': case 'invalid_state': return '파일 작업 실행 상태를 확인할 수 없습니다. 원본과 대상 폴더를 확인한 뒤 앱을 다시 실행하세요.';
+      ? t("선택한 항목을 휴지통으로 보낼 수 없습니다. 고정 드라이브의 일반 파일·폴더만 지원합니다. 링크가 포함된 폴더·휴지통 안의 항목·이동식 및 네트워크 드라이브는 삭제하지 않습니다.", "These items cannot be sent to the Recycle Bin. Only ordinary files and folders on fixed drives are supported. Folders containing links, items already in the Recycle Bin, and removable or network drives are not deleted.")
+      : kind === 'compress' || kind === 'extract' ? t("기본 ZIP은 일반 파일·폴더, UTF-8 이름, 최대 2,048항목·1GiB를 지원합니다. 암호화·ZIP64·링크·중복 이름·잘못된 경로는 지원하지 않습니다. 설치된 압축 앱을 선택할 수 있습니다.", "Built-in ZIP supports ordinary files and folders, UTF-8 names, and up to 2,048 items / 1 GiB. Encryption, ZIP64, links, duplicate names, and invalid paths are not supported. You can choose an installed archive app instead.")
+      : t("경로·연결 상태·권한을 확인하세요. 링크와 자기 안으로 복사는 지원하지 않습니다. 다른 드라이브 폴더 이동은 링크·암호화·폴더 추가 데이터가 없는 로컬 NTFS 폴더만 지원합니다. WSL 이동은 같은 배포판·볼륨 안에서만 지원합니다. Windows↔WSL·다른 배포판·일반 네트워크 사이는 복사를 사용하세요.", "Check paths, connections, and permissions. Links and copying a folder into itself are not supported. Cross-drive folder moves require local NTFS folders without links, encryption, or alternate data streams on folders. WSL moves must stay within the same distribution and volume. Use copy between Windows and WSL, different distributions, or general network storage.");
+    case 'access_denied': return t("이 항목을 변경할 권한이 없거나 다른 앱이 사용 중입니다.", "You do not have permission to change this item, or another app is using it.");
+    case 'not_found': return t("원본이나 대상 폴더를 찾을 수 없습니다. 목록을 새로 고친 뒤 경로를 확인하세요.", "The source or destination folder was not found. Refresh the list and check the path.");
+    case 'worker_unavailable': case 'invalid_state': return t("파일 작업 실행 상태를 확인할 수 없습니다. 원본과 대상 폴더를 확인한 뒤 앱을 다시 실행하세요.", "The file operation status could not be confirmed. Check the source and destination folders, then restart the app.");
     case 'resource_limit': case 'payload_limit': return kind === 'recycle'
-      ? '작업 한도에 도달했습니다. 선택한 파일·폴더와 하위 항목 수·경로 길이·결과 기록 용량을 확인하고, 나누어 선택하거나 작업 기록을 정리하세요.'
-      : '작업 한도에 도달했습니다. 폴더 안의 항목도 포함되므로 나누어 선택하거나 작업 기록을 확인하세요.';
-    default: return '작업을 처리하지 못했습니다. 접수한 작업은 상단 파일 작업 버튼의 결과에서 확인하세요.';
+      ? t("작업 한도에 도달했습니다. 선택한 파일·폴더와 하위 항목 수·경로 길이·결과 기록 용량을 확인하고, 나누어 선택하거나 작업 기록을 정리하세요.", "An operation limit was reached. Check the number of selected and nested items, path lengths, and result log capacity. Select fewer items or clear completed operation records.")
+      : t("작업 한도에 도달했습니다. 폴더 안의 항목도 포함되므로 나누어 선택하거나 작업 기록을 확인하세요.", "An operation limit was reached. Items inside folders count too. Select fewer items or check the operation log.");
+    default: return t("작업을 처리하지 못했습니다. 접수한 작업은 상단 파일 작업 버튼의 결과에서 확인하세요.", "The operation could not be processed. Check results for accepted operations using File operations at the top.");
   }
 }
 

@@ -167,3 +167,13 @@ WebView2는 별도 필요하며 패키지에 포함하지 않습니다. 1.1.0 CI
 - 고정 드라이브 폴더도 삭제 버튼·우클릭 메뉴·Delete로 휴지통 확인창을 열 수 있습니다. 파일과 여러 폴더를 함께 선택해도 전체 사전검증을 거칩니다. 링크·네트워크·이동식 드라이브 및 안전하게 확인할 수 없는 폴더는 거부하며 영구 삭제로 대체하지 않습니다. 폴더의 하위 항목과 경로 크기에도 안전 한도가 적용됩니다.
 - 잘라내기와 이동은 기존 지원 범위에서 이동합니다. 준비 단계에서 저장소·권한·항목 수 등의 제한이 확인되면 원본을 남기는 복사 창으로 전환하고 사유를 표시합니다. 대상 경로를 확인한 뒤 복사를 누르거나 취소할 수 있습니다. 이미 접수된 이동이나 결과가 불확실한 작업은 자동 복사하지 않습니다.
 - 외부 Windows 앱의 잘라내기 클립보드는 기존처럼 지원하지 않음을 안내합니다. 해당 앱에서 복사한 뒤 붙여넣으세요.
+
+## 표시 언어 / Display language
+
+상단의 **언어 / Language**에서 한국어 또는 English를 선택합니다. 재시작 없이 적용되고 다음 실행에도 유지됩니다. 이전 버전에서 업데이트하거나 설정이 없을 때는 한국어로 시작합니다. 설정 저장이 불가능하면 이번 실행에만 적용된다는 안내가 표시됩니다.
+
+Choose **한국어** or **English** in the header. The language changes immediately and is remembered on restart. Korean remains the default for existing users and when no preference is saved. If preference storage is unavailable, the app shows a warning and still applies the choice for the session.
+
+파일·폴더·프로젝트 이름과 경로는 번역하지 않습니다. Windows 셸 메뉴 및 외부 앱의 창은 해당 프로그램의 언어를 따릅니다. 날짜는 두 언어에서 동일하게 PC 현지 시간의 YYYY-MM-DD HH:mm 형식을 사용합니다.
+
+File, folder and project names and paths are never translated. Windows shell menus and external app dialogs follow their own language settings. Both languages display dates in YYYY-MM-DD HH:mm using the PC’s local time.

@@ -1,3 +1,4 @@
+import { t, useLanguage } from '../../shared/i18n';
 import { useLayoutEffect, useRef } from 'react';
 
 export type FileMenuAction = { readonly label: string; readonly description?: string; readonly disabled?: boolean; readonly shortcut?: 'F2' | 'Delete' | 'Alt+Enter'; readonly run: () => void };
@@ -5,6 +6,7 @@ export type FileMenuAction = { readonly label: string; readonly description?: st
 export function FileContextMenu({ x, y, actions, close }: {
   readonly x: number; readonly y: number; readonly actions: readonly FileMenuAction[]; readonly close: () => void;
 }) {
+  const language = useLanguage();
   const menu = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const element = menu.current;
@@ -18,8 +20,8 @@ export function FileContextMenu({ x, y, actions, close }: {
     document.addEventListener('pointerdown', outside, true);
     window.addEventListener('blur', blur);
     return () => { document.removeEventListener('pointerdown', outside, true); window.removeEventListener('blur', blur); };
-  }, [x, y, close]);
-  return <div ref={menu} className="file-context-menu" role="menu" aria-label="파일 작업 메뉴" style={{ left: x, top: y }}
+  }, [x, y, close, language]);
+  return <div ref={menu} className="file-context-menu" role="menu" aria-label={t("파일 작업 메뉴", "File actions")} style={{ left: x, top: y }}
     onContextMenu={event => event.preventDefault()} onKeyDown={event => {
       event.stopPropagation();
       const buttons = [...(menu.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? [])];

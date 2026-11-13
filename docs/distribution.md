@@ -1,6 +1,6 @@
 # Windows 배포와 업데이트
 
-현재 소스와 공개 배포 버전은 1.5.1입니다. 2026-11-13 게시한 Windows x64 설치 파일, updater 서명, 버전 feed와 SHA256은 [1.5.1 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.1)에서 제공합니다. [최종 패키지·배포 검증](release-1.5.1-validation.md)에서 정확한 제품 커밋과 해시, 공개 다운로드 검증 결과를 확인하세요. 서명·격리 업데이트 검증이 완료되기 전의 로컬 설치파일은 정식 배포물이 아닙니다.
+현재 소스와 공개 배포 버전은 1.5.2입니다. 2026-11-13 게시한 Windows x64 설치 파일, updater 서명, 버전 feed와 SHA256은 [1.5.2 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.2)에서 제공합니다. [최종 패키지·배포 검증](release-1.5.2-validation.md)에서 정확한 제품 커밋과 해시, 공개 다운로드 검증 결과를 확인하세요. 서명·격리 업데이트 검증이 완료되기 전의 로컬 설치파일은 정식 배포물이 아닙니다.
 
 ## 설치형과 ZIP판
 
