@@ -1,58 +1,69 @@
 # ProjectPane
 
-Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝트별 폴더와 화면 구성을 저장하고 여러 폴더에서 기본 파일 작업을 수행합니다.
+**English** | [한국어](README.ko.md)
 
-현재 소스 버전은 **1.5.2**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-13 게시한 [1.5.2 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.2)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
+A lightweight multi-pane, multi-tab file explorer for Windows. Save folders and layouts by project, and work with files across multiple folders.
 
-## 기능
+The current version is **1.5.2**. Download the Windows x64 installer and SHA256 checksums from the [1.5.2 release](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.2), published on November 13, 2026. The signed update package, final installer payload, public downloads and update feed have been verified. This [public source repository](https://github.com/swallow-kim/projectpane-public) does not include the earlier private development history or original test artifacts.
 
-- 1·2·4패널, 폴더 탭, 프로젝트 탭, 프로젝트 루트에서 새 탭·빈 패널 열기.
-- 프로젝트별 프리셋과 마지막 작업 상태, 프로젝트 공통 폴더 즐겨찾기.
-- 활성 파일 목록에서 타이핑하면 파일명 필터로 입력·포커스 이동. 기존 필터는 새 검색어로 교체하며 필터에서 Esc로 비우고 목록에 복귀.
-- Ctrl/Shift 다중 선택, 빈 공간 드래그 영역 선택, 조밀한 두 줄 패널 헤더와 키보드 리사이즈.
-- Ctrl+Shift+P 빠른 이동, Ctrl+Shift+T 닫은 탭 복원, 탭 닫기 보호. 상시 디스크 색인은 사용하지 않음.
-- 일반 복사는 추가 재확인 없이 실행. 충돌 때 건너뛰기·다른 이름 복사, 이동·삭제 등의 확인 유지. 복사 진행·취소·결과는 상단 복사 작업 버튼에서 확인하고 다른 작업은 파일 작업 버튼에서 확인.
-- 이름·확장자 분리 편집, 최종 이름 미리보기, 절대·상대경로 텍스트 복사.
-- ZIP 압축·새 폴더에 해제, 설치된 압축 앱으로 전달. 기본 앱 열기·속성·탐색기에서 선택 항목 보기와 Windows Shell 메뉴.
-- 업데이트 버튼과 시작 후 하루 한 번 확인. 설치형은 사용자 선택으로 다운로드·서명 검증·설치·재시작하며, ZIP은 다운로드 안내만 제공합니다.
+## Features
 
-자세한 동작과 단축키는 [사용·복구 안내](docs/user-guide.md), 기능별 변경은 [변경 내역](CHANGELOG.md)을 참고하세요.
+- One, two or four panes, folder tabs and project tabs. New tabs and empty panes open at the project root.
+- Per-project presets and saved working state, plus shared folder favorites across projects.
+- Type in the active file list to start a new filename filter. Esc clears the filter and returns focus to the list.
+- Ctrl/Shift multi-selection, drag selection on empty space, compact two-row pane headers and keyboard resizing.
+- Ctrl+Shift+P quick navigation, Ctrl+Shift+T closed-tab restoration and tab-close protection. No always-on disk indexing.
+- Ordinary copies run without an extra confirmation. Conflicts offer skip or copy under another name; moves and deletions retain confirmation. The top-bar copy button shows copy progress, cancellation and results; other operations use the file-operations button.
+- Separate filename and extension editing, final-name previews, and copying absolute or project-relative paths as text.
+- ZIP creation and extraction into a new folder, and handoff to installed archive apps. Open with the default app, view properties, reveal selections in Explorer, or use the Windows Shell menu.
+- An update button and a once-a-day check after startup. Installed copies can download, verify, install and restart with user approval; ZIP copies provide download guidance only.
+- Korean and English interface options, switchable immediately from the header with a saved preference.
 
-## 1.5.2 파일 작업과 열 너비 개선
+See the [user and recovery guide](docs/user-guide.md) for behavior and shortcuts, and the [changelog](CHANGELOG.md) for version history. Most detailed guides are currently in Korean; the English README summarizes the main behavior and limitations.
 
-[1.5.2 패키지·배포 검증](docs/release-1.5.2-validation.md)을 참고하세요.
+## What's new in 1.5.2: Korean and English
 
-폴더 삭제 버튼·메뉴를 활성화하고 이동 준비 제한에는 복사 전환 안내를 제공합니다. 목록의 네 열 경계를 드래그하거나 좌우 화살표로 조절할 수 있습니다. 설정은 패널별로 저장하며 두 번 클릭하면 기본 너비로 돌아갑니다.
+Choose **한국어 / English** in the header. The interface changes immediately and remembers the choice on the next launch. Korean remains the default. Menus, dialogs, statuses, errors and accessibility labels are translated; your filenames, project names and paths are not changed. If the preference cannot be saved, the app displays a session-only warning.
 
-## 1.5.0 프로젝트 루트 편집
+Windows Shell menus, external application dialogs and server-provided release notes keep their own language. Dates use PC local time in YYYY-MM-DD HH:mm format.
 
-프로젝트 관리의 **프로젝트 편집**에서 이름과 루트 경로를 수정합니다. 새 탭과 빈 패널은 루트에서 열리고 주소창 상대경로와 상대경로 복사도 프로젝트 루트 기준입니다. 기존 탭·프리셋의 실제 폴더 위치는 유지하며 파일을 이동하지 않습니다. WSL 경로 대소문자와 중단된 설정 변경의 복구를 보강했습니다.
+See the [1.5.2 package and release validation](docs/release-1.5.2-validation.md).
 
-[1.5.0 패키지·배포 검증](docs/release-1.5.0-validation.md)을 참고하세요.
+## 1.5.1: file actions and column widths
 
-## 1.4.0 복사와 목록 응답 개선
+Folders can be selected for deletion through the toolbar and context menu. When a move cannot be prepared, the app explains the limitation and offers copying instead. Resize the Name, Type, Size and Modified columns by dragging their boundaries or using the left/right arrow keys. Widths are saved per pane; double-click a boundary to restore its default.
 
-복사 선택과 결과를 디스크에 나누어 기록하고 폴더를 순차 탐색합니다. 이 복사 경로에는 이전 128/1,024개 선택·2,048개 하위 결과 한도를 적용하지 않으며, 경로·개별 요청 크기·파일 형식 검사는 유지합니다. 목록 필터 입력과 ASCII 이름 정렬·다중 선택 해석을 개선했습니다. 측정값과 실제 앱 검사 범위는 [대용량 복사 검증 기록](docs/large-copy-validation-20261109.md)을 참고하세요.
+See the [1.5.1 package and release validation](docs/release-1.5.1-validation.md).
 
-ADS가 있는 원본을 ADS 미지원 대상으로 복사하면 해당 대상 파일을 만들기 전에 거부합니다. 스트림을 버리는 대체 복사는 하지 않습니다. 링크·재분석 지점·특수 파일 등 지원하지 않는 항목은 안전하게 중단합니다. 이미 완료된 항목은 유지되므로 실패·취소 후 원본과 대상을 확인하세요. 실제 원격 NAS는 검증하지 않았으며 Explorer 물리 입력·클립보드 왕복 시험은 네이티브 입력/클립보드 접근 제한으로 완료하지 못했습니다.
+## 1.5.0: editable project roots
 
-## 설치와 업데이트
+Use **Edit project** in project management to change the name and root path. New tabs and empty panes start at the root. Relative paths in the address bar and copied relative paths are based on the project root, not the current folder. Existing tabs and presets keep their actual folder locations; editing a root does not move files. WSL path case handling and recovery from interrupted settings changes were also improved.
 
-1.2.1에는 updater가 없으므로 최초 업데이트 지원판은 한 번 수동 설치해야 합니다. 이후 현재 사용자 NSIS 설치형은 앱의 업데이트 버튼을 사용합니다. 먼저 다운로드와 서명을 확인하고, 별도의 설치 선택 후 파일 작업 종료·프로젝트 저장·worker 종료를 확인합니다. 저장이나 종료가 불확실하면 설치를 시작하지 않습니다. 임시 작업 공간은 프로젝트로 저장하세요.
+See the [1.5.0 package and release validation](docs/release-1.5.0-validation.md).
 
-ZIP은 별도 폴더에 새 버전을 풀고 data와 webview-profile을 보존하는 수동 방식입니다. 앱이 설치형 경로임을 확인하지 못하면 자동 설치를 제공하지 않습니다. [업데이트 동작·실패 복구](docs/updater.md)를 참고하세요.
+## 1.4.0: larger copies and more responsive lists
 
-## 지원 범위
+Copy selections and results are recorded incrementally on disk, and folders are traversed progressively. This copy path no longer uses the previous 128/1,024-item selection or 2,048-child-result limits; path, individual request-size and file-type checks remain. Filename filtering, ASCII natural sorting and multi-selection processing were also improved. See the [large-copy validation record](docs/large-copy-validation-20261109.md) for measurements and native-app test coverage.
 
-주요 개발·검증 환경은 Windows 10 x64입니다. Windows↔WSL 복사와 같은 WSL 배포판·볼륨 안 rename 이동을 지원합니다. 다른 드라이브의 폴더 이동은 양쪽 모두 로컬 고정 NTFS인 일반 폴더로 제한합니다. 링크·충돌·메타데이터와 작업 한도 검사는 유지합니다.
+Copying a file with alternate data streams (ADS) to a destination that cannot preserve them is rejected before creating that destination file. There is no fallback that silently discards streams. Unsupported links, reparse points and special files stop safely. Completed items remain after a failure or cancellation, so check both source and destination. Real remote NAS testing was not completed. Physical Explorer input and system-clipboard round-trip tests were also blocked by native input/clipboard access restrictions.
 
-외부 잘라내기·MOVE, Windows↔WSL 이동, 다른 WSL 배포판·일반 네트워크 간 이동, 폴더 병합·덮어쓰기·영구 삭제·일반 Undo는 지원하지 않습니다. 취소는 완료된 작업을 되돌리는 기능이 아닙니다. 불명 작업은 자동 재실행하지 않습니다.
+## Installation and updates
 
-Windows 11, 실제 한국어 IME·Snap·다중 모니터 DPI, Explorer 물리 드래그·실제 클립보드 왕복은 검증을 완료하지 않았습니다. 이전 버전의 8시간 기능 검사는 통과했으나 대용량 반복 탐색의 250 MiB 메모리 목표 초과는 알려진 이슈로 남아 있습니다. [검증 범위](docs/validation.md)를 확인하세요.
+Version 1.2.1 has no updater, so upgrading from it requires a one-time manual installation of an updater-enabled version. Subsequent per-user NSIS installations can use the app's update button. The app downloads and verifies the signature first. After you separately choose to install, it checks that file operations have ended, projects have been saved and the worker has stopped. Installation does not start if saving or shutdown is uncertain. Save temporary workspaces as projects.
 
-## 빌드
+For ZIP copies, extract the new version into a separate folder and preserve `data` and `webview-profile` manually. Automatic installation is not offered when the app cannot confirm that it is running from an installed location. See [update behavior and failure recovery](docs/updater.md).
 
-Node 24, 저장소에 고정된 Rust 도구 체인, Windows MSVC C++ Build Tools와 Windows SDK가 필요합니다. 실행에는 WebView2 Runtime이 필요합니다.
+## Support and limitations
+
+The main development and validation environment is Windows 10 x64. Windows ↔ WSL copying and rename-based moves within the same WSL distribution and volume are supported. Cross-drive folder moves are limited to ordinary folders on local fixed NTFS volumes at both ends. Link, conflict, metadata and operation-limit checks remain in place.
+
+External cut/MOVE operations, Windows ↔ WSL moves, moves between WSL distributions or general network locations, folder merging, overwriting, permanent deletion and general Undo are not supported. Cancellation does not roll back completed work. Operations with an uncertain outcome are not automatically retried. SSH/SFTP support is not included.
+
+Windows 11, physical Korean IME input, Snap, multi-monitor DPI, physical Explorer drag-and-drop and real system-clipboard round trips have not completed validation. An earlier eight-hour functional test passed, but exceeding the 250 MiB memory target during repeated large-folder browsing remains a known issue. See the [validation scope](docs/validation.md).
+
+## Build from source
+
+Requires Node 24, the repository-pinned Rust toolchain, Windows MSVC C++ Build Tools and the Windows SDK. WebView2 Runtime is required to run the app.
 
 ```sh
 npm ci
@@ -67,18 +78,18 @@ cargo test --locked --manifest-path src-tauri/Cargo.toml --features desktop --li
 npm run desktop:build
 ```
 
-npm run dev는 합성 목록의 브라우저 개발 화면, npm run desktop:dev는 실제 파일 시스템을 사용하는 데스크톱 앱입니다. 시험에는 전용 합성 파일만 사용하세요. 설치·제거·네이티브 입력 시험은 위 자동검사에 포함되지 않습니다.
+`npm run dev` starts the browser development UI with synthetic listings. `npm run desktop:dev` starts the desktop app against the real filesystem. Use dedicated synthetic files for tests. Installation, uninstallation and native-input tests are not included in the checks above.
 
-Windows 산출 경로는 src-tauri/target/release/bundle/nsis/입니다. 빌드는 설치를 실행하지 않습니다. WebView2가 포함된 오프라인 설치판과 Windows Authenticode 코드 서명은 제공하지 않습니다. Updater의 암호학적 서명은 Windows 코드 서명과 별개입니다. [설치·배포 요구사항](docs/distribution.md)을 확인하세요.
+Windows installers are written to `src-tauri/target/release/bundle/nsis/`. Building does not install the app. Offline installers bundled with WebView2 and Windows Authenticode code signing are not provided. Cryptographic updater signatures are separate from Windows code signing. See [installation and distribution requirements](docs/distribution.md).
 
-서명 설치 패키지를 만드는 `npm run desktop:build`에는 별도로 보관한 updater 서명키가 필요합니다. 공개 소스에는 개인키가 없습니다. 서명 없는 로컬 확인용 패키지의 설정 방법은 [배포 문서](docs/distribution.md#로컬-빌드와-배포-준비)를 참고하세요.
+Creating a signed installer with `npm run desktop:build` requires a separately stored updater signing key; no private key is included in the public source. For unsigned local test packages, see the [local-build configuration](docs/distribution.md#로컬-빌드와-배포-준비).
 
-## 문서와 라이선스
+## Documentation and license
 
-- [1.4.0 최종 패키지·배포 검증](docs/release-1.4.0-validation.md)
-- [사용·복구 안내](docs/user-guide.md)
-- [아키텍처](docs/architecture.md), [UI 규칙](docs/design-system.md), [후속 단계](docs/post-v1-phases.md)
-- [MIT 라이선스](LICENSE), [제3자 고지](THIRD_PARTY_NOTICES.md)
-- [의존성 목록](docs/dependency-licenses-1.5.0.md), [원문 고지 모음](docs/third-party-license-texts.md)
+- [1.4.0 final package and release validation](docs/release-1.4.0-validation.md)
+- [User and recovery guide](docs/user-guide.md)
+- [Architecture](docs/architecture.md), [UI rules](docs/design-system.md), [follow-up phases](docs/post-v1-phases.md)
+- [MIT license](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md)
+- [Dependency inventory](docs/dependency-licenses-1.5.2.md), [full third-party notices](docs/third-party-license-texts.md)
 
-ProjectPane 소유 코드·문서는 MIT입니다. 제3자 코드·아이콘·SDK·설치 도구에는 각각의 원래 조건이 적용됩니다.
+ProjectPane-owned code and documentation are MIT-licensed. Third-party code, icons, SDKs and installer tools retain their respective licenses.
