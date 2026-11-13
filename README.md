@@ -2,7 +2,7 @@
 
 Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝트별 폴더와 화면 구성을 저장하고 여러 폴더에서 기본 파일 작업을 수행합니다.
 
-현재 소스 버전은 **1.5.1**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-11 게시한 [1.5.0 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.0)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
+현재 소스 버전은 **1.5.1**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-13 게시한 [1.5.1 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.1)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
 
 ## 기능
 
@@ -19,6 +19,8 @@ Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝�
 자세한 동작과 단축키는 [사용·복구 안내](docs/user-guide.md), 기능별 변경은 [변경 내역](CHANGELOG.md)을 참고하세요.
 
 ## 1.5.1 파일 작업과 열 너비 개선
+
+[1.5.1 패키지·배포 검증](docs/release-1.5.1-validation.md)을 참고하세요.
 
 폴더 삭제 버튼·메뉴를 활성화하고 이동 준비 제한에는 복사 전환 안내를 제공합니다. 목록의 네 열 경계를 드래그하거나 좌우 화살표로 조절할 수 있습니다. 설정은 패널별로 저장하며 두 번 클릭하면 기본 너비로 돌아갑니다.
 
