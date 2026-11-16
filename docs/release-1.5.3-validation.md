@@ -41,3 +41,9 @@ Both language screenshots were inspected. Normal closes returned saved-state ack
 ## Boundaries
 
 The build PC has no mapped network drive. DRIVE_REMOTE has mocked API coverage; actual GetDriveTypeW was exercised on the system drive. No remote share or drive mapping was created for testing. Windows 11, physical Explorer input and the existing file-operation limitations are unchanged. This is exact-package native acceptance, not an installed-app upgrade test. No CI workflow result is claimed; validation ran on the Windows build machine.
+
+## Publication
+
+[Release and downloads](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.3).
+
+All four draft assets were downloaded and matched the staged bytes before publication. After publication, anonymous downloads of the installer, signature, latest.json and SHA256SUMS.txt matched exactly; the latest-release feed points to 1.5.3. The actual updater downloaded the public package and matched the verified local installer (1 passed), without installing it.
