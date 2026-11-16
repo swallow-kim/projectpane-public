@@ -6,6 +6,7 @@ pub mod change_watch;
 pub mod explorer;
 #[cfg(windows)]
 pub mod file_operations;
+pub mod project_roots;
 #[cfg(windows)]
 pub mod recovery_observation;
 pub(crate) mod session;

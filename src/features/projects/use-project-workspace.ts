@@ -61,6 +61,7 @@ export function useProjectWorkspace(startup: StartupConfig, snapshot: (root: str
     projects: state?.projects ?? [], selectedId: state?.selected?.id ?? null,
     saving: state?.busy ?? true, error: projectErrorText(localError ?? state?.error), readOnly: state?.readOnly,
     saveStatusText: !state?.selected ? t("임시 작업 공간 · 자동 저장 안 함", "Temporary workspace · Not saved automatically") : state.readOnly ? t("복구 상태 · 저장 차단됨", "Recovery mode · Saving disabled") : ({ dirty: t("변경 사항 저장 대기", "Changes waiting to be saved"), saving: t("세션 저장 중…", "Saving session…"), saved: t("마지막 작업 상태 저장됨", "Last workspace saved"), error: t("세션 저장 실패", "Session save failed") } as const)[state.status],
+    onReorder: ids => withCapture(current => current.reorder(ids)),
     onSelect: id => withCapture(current => current.select(id)),
     onCreate: ({ name, rootPath }) => withCapture(current => current.mutate(async () => {
       const workspace = latest.current.snapshot(rootPath);

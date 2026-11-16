@@ -6,6 +6,7 @@ pub use favorites::{Favorite, Favorites, SaveFavorites};
 mod editing;
 mod loading;
 mod mutations;
+mod ordering;
 
 // All store-using tests share the production process-wide writer. Serialize
 // independent fixtures, while keeping each test's deliberate races intact.

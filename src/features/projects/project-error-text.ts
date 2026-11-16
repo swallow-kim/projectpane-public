@@ -3,6 +3,8 @@ import { t } from '../../shared/i18n';
 /** Stored errors stay language-neutral so changing language does not alter controller state. */
 export function projectErrorText(error: string | null | undefined): string | null | undefined {
   switch (error) {
+    case '프로젝트 순서 저장을 확인하지 못했습니다. 다시 시도하여 저장된 순서를 확인하세요.':
+      return t(error, 'Could not confirm the project order was saved. Retry to check the saved order.');
     case '세션을 저장하지 못했습니다. 다시 시도하세요.':
       return t(error, 'Could not save the session. Try again.');
     case '다른 저장과 충돌했습니다. 현재 작업을 유지했습니다. 다시 불러오기 전에 변경을 확인하세요.':

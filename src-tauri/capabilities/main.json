@@ -27,6 +27,8 @@
     "allow-import-from-explorer",
     "allow-clipboard-sequence",
     "allow-list-projects",
+    "allow-classify-project-roots",
+    "allow-reorder-projects",
     "allow-list-favorites",
     "allow-save-favorites",
     "allow-create-project",

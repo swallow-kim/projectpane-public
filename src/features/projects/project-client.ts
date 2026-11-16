@@ -16,6 +16,7 @@ export type ProjectList = {
 /** UI-facing seam; only the IPC adapter knows backend request envelopes. */
 export interface ProjectClient {
   list(): Promise<ProjectList>;
+  reorder(expectedOrder: readonly string[], projectIds: readonly string[]): Promise<readonly string[]>;
   load(id: string, source: 'session' | 'preset'): Promise<LoadedProject>;
   create(name: string, rootPath: string, workspace: Workspace): Promise<LoadedProject>;
   edit(project: ProjectMetadata, name: string, rootPath: string): Promise<LoadedProject>;

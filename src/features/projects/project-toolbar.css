@@ -87,3 +87,13 @@
 .project-save-status { color: var(--pt-muted); font-size: 11px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .project-manager { position: relative; flex: none; }
 .project-manager > .project-toolbar__actions { position: absolute; right: 0; top: 100%; z-index: 110; padding: 6px; background: var(--pt-panel); border: 1px solid var(--pt-border); border-radius: 6px; box-shadow: 0 8px 24px #0008; }
+
+.project-tabs [role=tab] { display: flex; align-items: center; gap: 5px; position: relative; }
+.project-tab-icon { flex: none; }
+.project-tab-name { overflow: hidden; text-overflow: ellipsis; }
+.project-tab-kind { flex: none; font-size: 10px; color: var(--pt-muted); border: 1px solid var(--pt-border); border-radius: 3px; padding: 0 3px; }
+.project-tabs [data-drop-position=before] { box-shadow: inset 3px 0 var(--pt-focus); }
+.project-tabs [data-drop-position=after] { box-shadow: inset -3px 0 var(--pt-focus); }
+.project-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.project-tabs [role=tab] { touch-action: pan-y; user-select: none; }

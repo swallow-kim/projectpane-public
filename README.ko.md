@@ -4,7 +4,7 @@
 
 Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝트별 폴더와 화면 구성을 저장하고 여러 폴더에서 기본 파일 작업을 수행합니다.
 
-현재 소스 버전은 **1.5.2**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-13 게시한 [1.5.2 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.2)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
+현재 소스 버전은 **1.5.3**이며 공개 소스 저장소는 [swallow-kim/projectpane-public](https://github.com/swallow-kim/projectpane-public)입니다. Windows x64 설치 파일과 SHA256은 2026-11-16 게시한 [1.5.3 릴리스](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.3)에서 제공합니다. 서명·최종 패키지·공개 다운로드와 업데이트 feed를 검증했습니다. 기존 비공개 개발 이력·시험 원본은 포함하지 않습니다.
 
 ## 기능
 
@@ -19,6 +19,14 @@ Windows용 경량 멀티패널·멀티탭 파일 탐색기입니다. 프로젝�
 - 업데이트 버튼과 시작 후 하루 한 번 확인. 설치형은 사용자 선택으로 다운로드·서명 검증·설치·재시작하며, ZIP은 다운로드 안내만 제공합니다.
 
 자세한 동작과 단축키는 [사용·복구 안내](docs/user-guide.md), 기능별 변경은 [변경 내역](CHANGELOG.md)을 참고하세요.
+
+## 1.5.3 프로젝트 탭 유형과 순서
+
+탭의 아이콘과 Windows·WSL·네트워크 배지로 프로젝트 루트를 구별하고 툴팁과 접근성 설명에서 루트 경로를 확인합니다. 드라이브 문자는 Windows 드라이브 유형 API로 확인하여 네트워크 매핑 드라이브도 구별합니다. 확인할 수 없는 드라이브는 로컬로 단정하지 않고 확인 불가로 표시합니다. 배지는 경로 유형이며 연결 상태나 접근 권한을 보장하지 않습니다.
+
+탭을 드래그하거나 탭에 포커스를 둔 상태에서 Ctrl+Shift+좌우 화살표로 순서를 변경합니다. 삽입 표시로 위치를 확인하고 Esc 또는 탭 영역 밖에 놓아 취소할 수 있습니다. 활성 프로젝트와 실제 파일은 바뀌지 않으며 다음 실행에도 순서를 유지합니다. 저장 실패나 충돌 시 화면 순서를 유지하고 불명 작업을 무작정 재실행하지 않습니다.
+
+[1.5.3 패키지·배포 검증](docs/release-1.5.3-validation.md).
 
 ## 1.5.2 한국어·영어 지원
 
@@ -89,6 +97,6 @@ Windows 산출 경로는 src-tauri/target/release/bundle/nsis/입니다. 빌드�
 - [사용·복구 안내](docs/user-guide.md)
 - [아키텍처](docs/architecture.md), [UI 규칙](docs/design-system.md), [후속 단계](docs/post-v1-phases.md)
 - [MIT 라이선스](LICENSE), [제3자 고지](THIRD_PARTY_NOTICES.md)
-- [의존성 목록](docs/dependency-licenses-1.5.2.md), [원문 고지 모음](docs/third-party-license-texts.md)
+- [의존성 목록](docs/dependency-licenses-1.5.3.md), [원문 고지 모음](docs/third-party-license-texts.md)
 
 ProjectPane 소유 코드·문서는 MIT입니다. 제3자 코드·아이콘·SDK·설치 도구에는 각각의 원래 조건이 적용됩니다.

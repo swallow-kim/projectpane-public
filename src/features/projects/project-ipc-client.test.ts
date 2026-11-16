@@ -41,3 +41,17 @@ it('rejects a relative project root before invoking the backend', async () => {
   await expect(createProjectClient(invoke).edit(metadata, 'Edited', 'relative')).rejects.toThrow();
   expect(invoke).not.toHaveBeenCalled();
 });
+
+it('validates exact reorder request and acknowledgement without changing selected project', async () => {
+  const invoke = vi.fn<ProjectInvoke>().mockResolvedValue({ projectIds: ['b', 'a'] });
+  expect(await createProjectClient(invoke).reorder(['a', 'b'], ['b', 'a'])).toEqual(['b', 'a']);
+  expect(invoke).toHaveBeenCalledExactlyOnceWith('reorder_projects', { request: { expectedOrder: ['a', 'b'], projectIds: ['b', 'a'] } });
+  invoke.mockResolvedValue({ projectIds: ['a', 'b'] });
+  await expect(createProjectClient(invoke).reorder(['a', 'b'], ['b', 'a'])).rejects.toThrow('invalid_document');
+});
+it('rejects duplicate, missing and unknown reorder ids before IPC', async () => {
+  const invoke = vi.fn<ProjectInvoke>();
+  const client = createProjectClient(invoke);
+  for (const ids of [['a'], ['a', 'a'], ['a', 'c']]) await expect(client.reorder(['a', 'b'], ids)).rejects.toThrow('invalid_document');
+  expect(invoke).not.toHaveBeenCalled();
+});

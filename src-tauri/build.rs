@@ -22,6 +22,8 @@ fn main() {
             "import_from_explorer",
             "clipboard_sequence",
             "list_projects",
+            "classify_project_roots",
+            "reorder_projects",
             "list_favorites",
             "save_favorites",
             "create_project",

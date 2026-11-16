@@ -9,6 +9,7 @@ mod operation_close;
 mod operation_runtime;
 mod operations;
 mod project_close_gate;
+mod project_roots;
 mod projects;
 mod runtime;
 mod startup;
@@ -54,6 +55,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             explorer::import_from_explorer,
             explorer::clipboard_sequence,
             projects::list_projects,
+            project_roots::classify_project_roots,
+            projects::reorder_projects,
             projects::list_favorites,
             projects::save_favorites,
             projects::create_project,

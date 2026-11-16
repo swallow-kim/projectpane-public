@@ -134,3 +134,15 @@ impl std::error::Error for ServiceError {}
 pub(super) fn fail(code: &'static str) -> std::io::Error {
     std::io::Error::other(ServiceError(code))
 }
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ReorderRequest {
+    pub expected_order: Vec<String>,
+    pub project_ids: Vec<String>,
+}
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Reordered {
+    pub project_ids: Vec<String>,
+}

@@ -256,3 +256,12 @@ pub async fn edit_project(
 ) -> Result<Loaded, ProjectError> {
     execute(window, state, |service| service.edit(request)).await
 }
+
+#[tauri::command]
+pub async fn reorder_projects(
+    window: WebviewWindow,
+    state: tauri::State<'_, DesktopProjects>,
+    request: ReorderRequest,
+) -> Result<Reordered, ProjectError> {
+    execute(window, state, |service| service.reorder(request)).await
+}

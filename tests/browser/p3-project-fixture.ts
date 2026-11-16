@@ -26,6 +26,8 @@ export async function installProjects(page: Page, ephemeral = false, readOnly = 
     let callbackId = 0;
     const emit = (event: string, payload: unknown) => { const id = listeners.get(event); if (id !== undefined) callbacks.get(id)?.({ event, id, payload }); };
     let lastProjectId: string | null = 'alpha';
+    let restoredOrder = false;
+    const orderStorageKey = 'projectpane.test.project-order';
     const load = (id: string, source = 'session') => {
       const session = sessions.get(id);
       lastProjectId = id;
@@ -38,7 +40,7 @@ export async function installProjects(page: Page, ephemeral = false, readOnly = 
       p3ReleaseCloseReply: () => { releaseCloseReply?.(); closeReply = null; },
       __TAURI_EVENT_PLUGIN_INTERNALS__: { unregisterListener: () => {} }, __TAURI_INTERNALS__: {
       transformCallback: (handler: (event: unknown) => void) => { callbackId++; callbacks.set(callbackId, handler); return callbackId; },
-      invoke: async (command: string, args: { event?: string; handler?: number; eventId?: number; choice?: string; saved?: boolean; attempt?: number; request?: { projectId: string; expectedRevision: number; expectedProjectRevision: number; expectedSessionRevision: number; name: string; rootPath: string; preset: ReturnType<typeof workspace>; workspace: ReturnType<typeof workspace>; source: string }; identity?: { pane: number }; path?: string; offset?: number; entryId?: string }) => {
+      invoke: async (command: string, args: { event?: string; handler?: number; eventId?: number; choice?: string; saved?: boolean; attempt?: number; request?: { paths?: string[]; expectedOrder?: string[]; projectIds?: string[]; projectId: string; expectedRevision: number; expectedProjectRevision: number; expectedSessionRevision: number; name: string; rootPath: string; preset: ReturnType<typeof workspace>; workspace: ReturnType<typeof workspace>; source: string }; identity?: { pane: number }; path?: string; offset?: number; entryId?: string }) => {
         calls.push({ command, args: structuredClone(args) });
         const request = args?.request;
         if (command === 'plugin:event|listen' && args.event && args.handler !== undefined) { listeners.set(args.event, args.handler); return args.handler; }
@@ -48,7 +50,39 @@ export async function installProjects(page: Page, ephemeral = false, readOnly = 
         if (command === 'project_close_ready') { if (!args.saved) emit('projectpane-close-failed', { attempt: args.attempt }); return; }
         if (command === 'plugin:event|unlisten') return;
         if (command === 'startup_config') return { folders: ephemeral ? ['C:\\Temporary'] : [], error: null, warnings: [] };
-        if (command === 'list_projects') return { projects: [...projects.values()], lastProjectId, warnings: [] };
+        if (command === 'list_projects') {
+          if (!restoredOrder && Reflect.get(window, 'p3PersistOrder')) {
+            restoredOrder = true;
+            const stored = sessionStorage.getItem(orderStorageKey);
+            const order: unknown = stored ? JSON.parse(stored) : null;
+            if (Array.isArray(order) && order.length === projects.size && new Set(order).size === order.length && order.every(id => projects.has(id))) {
+              const ordered = order.map(id => projects.get(id)!); projects.clear();
+              for (const project of ordered) projects.set(project.id, project);
+            }
+          }
+          return { projects: [...projects.values()], lastProjectId, warnings: [] };
+        }
+        if (command === 'reorder_projects' && request) {
+          if (Reflect.get(window, 'p3HoldReorder')) await new Promise<void>(resolve => Reflect.set(window, 'p3ReleaseReorder', resolve));
+          if (Reflect.get(window, 'p3FailReorder')) throw { code: 'io_error' };
+          const current = [...projects.keys()], expected = request.expectedOrder, next = request.projectIds;
+          if (!expected || JSON.stringify(expected) !== JSON.stringify(current)) throw { code: 'revision_conflict' };
+          if (!next || next.length !== current.length || new Set(next).size !== next.length || next.some(id => !projects.has(id))) throw { code: 'invalid_request' };
+          const ordered = next.map(id => projects.get(id)!); projects.clear();
+          for (const project of ordered) projects.set(project.id, project);
+          if (Reflect.get(window, 'p3PersistOrder')) sessionStorage.setItem(orderStorageKey, JSON.stringify(next));
+          return { projectIds: [...next] };
+        }
+        if (command === 'classify_project_roots' && request?.paths) {
+          const kinds: Record<string, string> = Reflect.get(window, 'p3RootKinds') ?? {};
+          const reply = request.paths.map(path => ({ path, kind: kinds[path] ?? (/^\\\\(?:wsl\$|wsl\.localhost)\\/i.test(path) ? 'wsl' : path.startsWith('\\\\') ? 'network' : /^[A-Za-z]:\\/.test(path) ? 'windows' : 'unknown') }));
+          if (Reflect.get(window, 'p3HoldRootKinds')) {
+            Reflect.set(window, 'p3HoldRootKinds', false);
+            await new Promise<void>(resolve => Reflect.set(window, 'p3ReleaseRootKinds', resolve));
+          }
+          if (Reflect.get(window, 'p3RootKindError')) throw { code: 'io_error' };
+          return reply;
+        }
         if (command === 'list_favorites') return { schemaVersion: 1, revision: 0, folders: [] };
         if (command === 'load_project' && request) return load(request.projectId, request.source);
         if (command === 'save_project_session' && request) {

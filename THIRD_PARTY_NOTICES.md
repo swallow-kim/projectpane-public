@@ -4,7 +4,7 @@ ProjectPane-owned code and documentation are licensed under [MIT](LICENSE). This
 
 ## Current source inventory (1.5.2)
 
-The [locked dependency inventory](docs/dependency-licenses-1.5.2.md) records 377 npm/Rust packages from the Windows desktop dependency graph, including build/test tools. It is not a claim that every listed package is linked into the executable. The [collected license texts](docs/third-party-license-texts.md) retain upstream notices for the conservatively classified runtime graph. Optional npm packages for other platforms are listed even when not installed locally. The updater is Tauri updater 2.14.1 (Apache-2.0 OR MIT); it does not relicense the application or the TLS/signature libraries.
+The [locked dependency inventory](docs/dependency-licenses-1.5.3.md) records 377 npm/Rust packages from the Windows desktop dependency graph, including build/test tools. It is not a claim that every listed package is linked into the executable. The [collected license texts](docs/third-party-license-texts.md) retain upstream notices for the conservatively classified runtime graph. Optional npm packages for other platforms are listed even when not installed locally. The updater is Tauri updater 2.14.1 (Apache-2.0 OR MIT); it does not relicense the application or the TLS/signature libraries.
 
 - React, React DOM, scheduler, Zod and the Tauri API retain their upstream licenses and copyright notices.
 - Lucide uses ISC and includes Feather-derived icons under MIT. [The complete upstream notice](docs/lucide-license.txt) is preserved, including the Feather attribution. `public/lucide-license.txt` is the same text.

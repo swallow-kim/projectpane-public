@@ -1,5 +1,12 @@
 # 변경 내역
 
+## 1.5.3 — 2026-11-16
+
+- Added project-root type icons and badges, including native detection of mapped network drives; unknown drives are not labeled local.
+- Added persistent project-tab ordering by drag-and-drop or Ctrl+Shift+Left/Right, with cancellation and keyboard access.
+- Preserved active projects, existing manifest compatibility and atomic save safeguards. Stale order updates are rejected; uncertain acknowledgements recover by reading the saved catalog.
+
+
 ## 1.5.2 — 2026-11-13
 
 - Added a Korean/English language selector with immediate switching and a saved preference. Existing users keep Korean by default.

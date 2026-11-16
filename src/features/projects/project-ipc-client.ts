@@ -27,6 +27,14 @@ export function createProjectClient(call: ProjectInvoke = invoke): ProjectClient
   const normalize = (result: z.infer<typeof loaded>) => ({ ...result, warnings: result.warnings.map(warning => warning.code) });
   return {
     async list() { const result = await request('list_projects', list); return { ...result, warnings: result.warnings.map(warning => warning.code) }; },
+    async reorder(expectedOrder, projectIds) {
+      const ids = z.array(projectIdSchema).max(128);
+      const before = ids.parse(expectedOrder), after = ids.parse(projectIds);
+      if (before.length !== after.length || new Set(before).size !== before.length || new Set(after).size !== after.length || after.some(id => !before.includes(id))) throw new ProjectIpcError('invalid_document');
+      const result = await request('reorder_projects', z.strictObject({ projectIds: ids }), { expectedOrder: before, projectIds: after });
+      if (result.projectIds.length !== after.length || result.projectIds.some((id, index) => id !== after[index])) throw new ProjectIpcError('invalid_document');
+      return result.projectIds;
+    },
     async load(id, source) { const result = await request('load_project', loaded, { projectId: projectIdSchema.parse(id), source });
       if (result.project.id !== id) throw new ProjectIpcError('invalid_document'); return normalize(result); },
     async create(name, rootPath, workspace) { return normalize(await request('create_project', loaded, { name, rootPath: absoluteProjectPathSchema.parse(rootPath), preset: workspaceSchema.parse(workspace) })); },

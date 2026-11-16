@@ -10,14 +10,15 @@ const p2Commands = [
 ];
 const projectCommands = [
   'list_favorites', 'save_favorites',
-  'list_projects', 'create_project', 'load_project', 'edit_project', 'rename_project',
+  'list_projects', 'reorder_projects', 'create_project', 'load_project', 'edit_project', 'rename_project',
   'duplicate_project', 'remove_project', 'save_project_preset',
   'save_project_session', 'project_close_ready',
 ];
 const operationCommands = ['get_operation_state', 'prepare_operation', 'capture_transfer', 'prepare_transfer', 'execute_operation', 'cancel_operation', 'discard_operation', 'get_operation_report', 'forget_operation', 'operation_close_choice'];
 const copyCommands = ['begin_copy_capture', 'append_copy_capture', 'seal_copy_capture', 'discard_copy_capture', 'capture_copy_clipboard', 'export_copy_capture', 'begin_copy_job', 'get_copy_job', 'list_copy_jobs', 'cancel_copy_job', 'read_copy_job_outcomes'];
 const updateCommands = ['update_status', 'check_update', 'download_update', 'cancel_update_download', 'install_update', 'open_update_page'];
-const appCommands = [...p2Commands, ...projectCommands, ...operationCommands, ...copyCommands, ...updateCommands, 'poll_watch'].sort();
+const rootCommands = ['classify_project_roots'];
+const appCommands = [...p2Commands, ...projectCommands, ...rootCommands, ...operationCommands, ...copyCommands, ...updateCommands, 'poll_watch'].sort();
 const eventPermissions = ['core:event:allow-listen', 'core:event:allow-unlisten'];
 
 test('updater accepts version-bound signatures and a fixed public HTTPS feed only', () => {
@@ -165,16 +166,35 @@ test('registered IPC commands match the explicit listing, project and operation 
   const desktop = readFileSync(new URL('../src-tauri/src/desktop/mod.rs', import.meta.url), 'utf8');
   const handler = desktop.match(/tauri::generate_handler!\[([\s\S]*?)\]/);
   assert.ok(handler);
-  const registered = [...handler[1].matchAll(/(?:commands|projects|operations|operation_close|copy_jobs|watch|explorer|archive_tools|updates)::([a-z_]+)/g)]
+  const registered = [...handler[1].matchAll(/(?:commands|projects|project_roots|operations|operation_close|copy_jobs|watch|explorer|archive_tools|updates)::([a-z_]+)/g)]
     .map((match) => match[1]).sort();
   assert.deepEqual(registered, appCommands);
   const projects = readFileSync(new URL('../src-tauri/src/desktop/projects.rs', import.meta.url), 'utf8');
   const defined = [...projects.matchAll(/#\[tauri::command\]\s+pub\s+(?:async\s+)?fn\s+([a-z_]+)/g)]
     .map((match) => match[1]).sort();
   assert.deepEqual(defined, [...projectCommands].sort());
+  const roots = readFileSync(new URL('../src-tauri/src/desktop/project_roots.rs', import.meta.url), 'utf8');
+  const rootDefined = [...roots.matchAll(/#\[tauri::command\]\s+pub\s+(?:async\s+)?fn\s+([a-z_]+)/g)].map(match => match[1]).sort();
+  assert.deepEqual(rootDefined, rootCommands);
   const operations = ['operations.rs', 'operation_close.rs'].map(file => readFileSync(new URL(`../src-tauri/src/desktop/${file}`, import.meta.url), 'utf8')).join('\n');
   const mutations = [...operations.matchAll(/#\[tauri::command\]\s+pub\s+(?:async\s+)?fn\s+([a-z_]+)/g)].map(match => match[1]).sort();
   assert.deepEqual(mutations, [...operationCommands].sort());
+});
+
+test('project root classification remains bounded, read-only and main-window only', () => {
+  const ipc = readFileSync(new URL('../src-tauri/src/desktop/project_roots.rs', import.meta.url), 'utf8');
+  const core = readFileSync(new URL('../src-tauri/src/platform/project_roots.rs', import.meta.url), 'utf8');
+  assert.match(ipc, /window\.label\(\) != "main"/);
+  assert.match(ipc, /deny_unknown_fields/);
+  assert.match(ipc, /Semaphore::const_new\(1\)/);
+  assert.match(ipc, /spawn_blocking/);
+  assert.match(core, /MAX_ROOTS: usize = 512/);
+  assert.match(core, /MAX_ROOT_BYTES: usize = 256 \* 1024/);
+  assert.match(core, /GetDriveTypeW\(root\.as_ptr\(\)\)/);
+  assert.doesNotMatch(core, /\b(?:CreateFileW|FindFirstFileW|read_dir|write|remove_file|remove_dir_all|rename)\s*\(/);
+  const projects = readFileSync(new URL('../src-tauri/src/desktop/projects.rs', import.meta.url), 'utf8');
+  assert.match(projects, /window\.label\(\) != "main"/);
+  assert.match(projects, /pub async fn reorder_projects[\s\S]*?execute\(window, state, \|service\| service\.reorder\(request\)\)/);
 });
 
 test('broad core, event emission, filesystem and opener permissions remain unavailable', () => {

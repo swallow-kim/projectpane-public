@@ -1,6 +1,7 @@
 import type { Workspace } from '../../shared/projects';
 import type { LoadedProject, ProjectClient, ProjectMetadata } from './project-client';
 import { SessionWriter, type SaveStatus } from './session-writer';
+const reorderError = '프로젝트 순서 저장을 확인하지 못했습니다. 다시 시도하여 저장된 순서를 확인하세요.';
 const sessionSaveError = '세션을 저장하지 못했습니다. 다시 시도하세요.';
 export type ProjectState = {
   readonly available: boolean;
@@ -15,6 +16,8 @@ export type ProjectState = {
 };
 export class ProjectWorkspaceController {
   state: ProjectState = { available: false, readOnly: false, ready: false, busy: false, selected: null, projects: [], status: 'saved', error: null, warnings: [] };
+  private reordering: Promise<void> | null = null;
+  private retryCatalog = false;
   private writer: SessionWriter<Workspace> | null = null;
   private generation = 0;
   private disposed = false;
@@ -25,7 +28,7 @@ export class ProjectWorkspaceController {
   constructor(readonly client: ProjectClient, readonly apply: (loaded: LoadedProject | null) => void, readonly notify: () => void) {}
   private update(patch: Partial<ProjectState>): void {
     if (this.disposed) return;
-    this.state = { ...this.state, ...patch }; this.notify();
+    this.state = { ...this.state, ...patch, ...(this.retryCatalog && patch.error === null ? { error: reorderError } : {}) }; this.notify();
   }
   private accept(loaded: LoadedProject, restore = true): void {
     this.writer?.dispose();
@@ -119,12 +122,62 @@ export class ProjectWorkspaceController {
     } catch (error) { this.failure(ticket, error); }
     finally { if (ticket === this.generation) this.update({ busy: false }); }
   }
+  reorder(ids: readonly string[]): Promise<void> {
+    if (this.disposed || this.state.busy || !this.state.ready || this.state.readOnly) return Promise.resolve();
+    const expected: readonly string[] = this.state.projects.map(project => project.id);
+    const next = [...ids];
+    if (next.length !== expected.length || new Set(next).size !== next.length || next.some(id => !expected.includes(id))) {
+      this.update({ error: reorderError }); return Promise.resolve();
+    }
+    if (next.every((id, index) => id === expected[index])) return Promise.resolve();
+    const ticket = ++this.generation;
+    this.update({ busy: true, error: null });
+    const work = (async () => {
+      try {
+        await this.writer?.flush();
+        if (ticket !== this.generation || this.disposed) return;
+        const saved = await this.client.reorder(expected, next);
+        if (ticket !== this.generation || this.disposed) return;
+        if (saved.length !== next.length || saved.some((id, index) => id !== next[index])) throw new Error('invalid_document');
+        const byId = new Map<string, ProjectMetadata>(this.state.projects.map(project => [project.id, project]));
+        this.retryCatalog = false;
+        this.update({ projects: saved.map(id => byId.get(id)!), error: null });
+      } catch {
+        if (ticket === this.generation && !this.disposed) {
+          // A lost acknowledgement may follow a successful write. Retry reads back
+          // the saved catalog; it never blindly sends the move a second time.
+          this.retryCatalog = true; this.update({ error: reorderError });
+        }
+      } finally { if (ticket === this.generation) this.update({ busy: false }); }
+    })();
+    this.reordering = work;
+    void work.finally(() => { if (this.reordering === work) this.reordering = null; });
+    return work;
+  }
   async retry(): Promise<void> {
+    if (this.state.busy) return;
+    if (this.retryCatalog) {
+      this.update({ busy: true, error: null });
+      try { await this.refreshList(); this.retryCatalog = false; this.update({ error: null }); }
+      catch { this.update({ error: reorderError }); }
+      finally { this.update({ busy: false }); }
+      return;
+    }
     if (this.retryLoad) return this.select(this.retryLoad.id, this.retryLoad.source);
     if (!this.writer) return this.initialize(this.ephemeral);
     this.update({ error: null });
     try { await this.writer.flush(); } catch (error) { this.failure(this.generation, error); }
   }
-  async closeWithin(milliseconds: number): Promise<boolean> { return this.writer ? this.writer.flushWithin(milliseconds) : true; }
+  async closeWithin(milliseconds: number): Promise<boolean> {
+    const started = performance.now();
+    if (this.reordering) {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const completed = await Promise.race([this.reordering.then(() => true), new Promise<boolean>(resolve => { timer = setTimeout(() => resolve(false), milliseconds); })]);
+      clearTimeout(timer);
+      if (!completed) return false;
+    }
+    if (this.retryCatalog) return false;
+    return this.writer ? this.writer.flushWithin(Math.max(1, milliseconds - (performance.now() - started))) : true;
+  }
   dispose(): void { this.disposed = true; ++this.generation; this.writer?.dispose(); }
 }

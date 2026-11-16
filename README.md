@@ -4,7 +4,7 @@
 
 A lightweight multi-pane, multi-tab file explorer for Windows. Save folders and layouts by project, and work with files across multiple folders.
 
-The current version is **1.5.2**. Download the Windows x64 installer and SHA256 checksums from the [1.5.2 release](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.2), published on November 13, 2026. The signed update package, final installer payload, public downloads and update feed have been verified. This [public source repository](https://github.com/swallow-kim/projectpane-public) does not include the earlier private development history or original test artifacts.
+The current version is **1.5.3**. Download the Windows x64 installer and SHA256 checksums from the [1.5.3 release](https://github.com/swallow-kim/projectpane-public/releases/tag/v1.5.3), published on November 16, 2026. The signed update package, final installer payload, public downloads and update feed have been verified. This [public source repository](https://github.com/swallow-kim/projectpane-public) does not include the earlier private development history or original test artifacts.
 
 ## Features
 
@@ -20,6 +20,14 @@ The current version is **1.5.2**. Download the Windows x64 installer and SHA256 
 - Korean and English interface options, switchable immediately from the header with a saved preference.
 
 See the [user and recovery guide](docs/user-guide.md) for behavior and shortcuts, and the [changelog](CHANGELOG.md) for version history. Most detailed guides are currently in Korean; the English README summarizes the main behavior and limitations.
+
+## 1.5.3: project tab types and ordering
+
+Project tabs show an icon and a Windows, WSL or Network badge, with the root path in the tooltip and accessible description. Windows drive letters are checked with the native drive-type API, so mapped network drives are identified as Network. Unavailable or unrecognized drives show Unknown rather than being assumed local. These badges describe the root, not connectivity or access permissions.
+
+Drag a project tab to reorder it, or focus it and use Ctrl+Shift+Left/Right. The insertion marker shows the drop position. Esc or dropping outside the tab strip cancels. Reordering does not switch the active project or move files; the order is saved for the next launch. Failed or conflicting saves keep the displayed order and offer recovery without blindly repeating the operation.
+
+[1.5.3 package and release validation](docs/release-1.5.3-validation.md).
 
 ## What's new in 1.5.2: Korean and English
 
@@ -90,6 +98,6 @@ Creating a signed installer with `npm run desktop:build` requires a separately s
 - [User and recovery guide](docs/user-guide.md)
 - [Architecture](docs/architecture.md), [UI rules](docs/design-system.md), [follow-up phases](docs/post-v1-phases.md)
 - [MIT license](LICENSE), [third-party notices](THIRD_PARTY_NOTICES.md)
-- [Dependency inventory](docs/dependency-licenses-1.5.2.md), [full third-party notices](docs/third-party-license-texts.md)
+- [Dependency inventory](docs/dependency-licenses-1.5.3.md), [full third-party notices](docs/third-party-license-texts.md)
 
 ProjectPane-owned code and documentation are MIT-licensed. Third-party code, icons, SDKs and installer tools retain their respective licenses.

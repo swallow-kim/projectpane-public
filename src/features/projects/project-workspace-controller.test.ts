@@ -9,6 +9,7 @@ function fixture() {
   const project = projectSchema.parse(projectFixture());
   const loaded: LoadedProject = { project, workspace: project.preset, sessionRevision: 0, readOnly: false, warnings: [] };
   const client: ProjectClient = {
+    reorder: vi.fn(async (_before, ids) => ids),
     list: vi.fn(async () => ({ projects: [project], lastProjectId: project.id, warnings: [] })),
     load: vi.fn(async () => loaded), create: vi.fn(async () => loaded),
     edit: vi.fn(async () => loaded), rename: vi.fn(async () => project), duplicate: vi.fn(async () => loaded), remove: vi.fn(async () => {}),
