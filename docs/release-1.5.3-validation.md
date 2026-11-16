@@ -24,7 +24,7 @@ The extracted NSIS payload matched compiled binaries, allowing only Tauri's exac
 - Rust library: 383 passed, 21 ignored. Desktop binary: 28 passed, 4 ignored. Explicit signature tests are separate.
 - Typecheck, production build, Rust formatting, strict Clippy and new-commit secret scanning passed. The existing Vite bundle-size warning remains.
 - Browser coverage includes root edits, mapped-drive response and failure handling, stale responses, both languages, insertion positions, pointer and keyboard ordering, external drops, cancellation, persistence, failed acknowledgements and read-only state. Final suite results are recorded below after the completed run.
-- A new concurrent-order Rust test initially had a closure-lifetime compile error; it was corrected before final checks. The initial browser full run passed 306/307; the new pointer-cancellation test captured geometry before asynchronous badge classification finished. Its fixture now awaits classification before capturing coordinates, without changing the app.
+- A new concurrent-order Rust test initially had a closure-lifetime compile error; it was corrected before final checks. The initial browser full run passed 306/307; the new pointer-cancellation test reused screen coordinates while the mock watcher failure inserted a status banner above the tabs. Event traces confirmed the pointer hit the banner rather than a tab. The test now awaits that known fixture status before capturing coordinates, without changing the app. Waiting for badge classification alone did not fix this timing issue.
 
 ## Exact packaged native acceptance
 
@@ -36,7 +36,7 @@ The extracted final app ran with owned synthetic folders and an isolated persist
 4. Duplicate-ID requests were rejected with the catalog unchanged.
 5. Normal close/restart retained order, active project and language preference.
 
-Both language screenshots were inspected. Normal closes returned saved-state acknowledgements, left no owned processes, and recorded no runtime errors. Source sentinel contents were unchanged. User installation and system clipboard were untouched. The fixture displayed a workspace recovery notice after restart. Order and selected project were separately asserted; this focused test does not recertify every workspace-restoration path.
+Both language screenshots were inspected. Normal closes returned saved-state acknowledgements, left no owned processes, and recorded no runtime errors. Source sentinel contents were unchanged. User installation and system clipboard were untouched. The fixture displayed the existing session_missing recovery notice after restart: newly created projects had no changed workspace session yet, so loading correctly fell back to their presets. This behavior was confirmed in the previous source version too. Catalog order and selected project were separately asserted; reordering did not alter session files.
 
 ## Boundaries
 

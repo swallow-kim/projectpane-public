@@ -246,13 +246,16 @@ test('desktop pointer escape, cancellation and outside release cannot reorder or
   await setup(page);
   await expect(tab(page, 'alpha')).toHaveAttribute('data-root-kind', 'windows');
   await expect(tab(page, 'beta')).toHaveAttribute('data-root-kind', 'windows');
+  // The fixture's unsupported watcher adds a notice asynchronously above the tabs.
+  // Wait for that layout change before capturing pointer coordinates.
+  await expect(page.locator('.notice').filter({ hasText: 'F5' })).toBeVisible();
   for (const cancel of ['escape', 'pointercancel', 'outside'] as const) {
     const source = await tab(page, 'beta').boundingBox(), target = await tab(page, 'alpha').boundingBox();
     if (!source || !target) throw new Error('Expected visible tabs');
     await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
     await page.mouse.down();
     await page.mouse.move(target.x + 4, target.y + target.height / 2, { steps: 8 });
-    await expect(tab(page, 'alpha')).toHaveAttribute('data-drop-position', 'before');
+    await expect(tab(page, 'alpha'), cancel).toHaveAttribute('data-drop-position', 'before');
     if (cancel === 'escape') await page.keyboard.press('Escape');
     else if (cancel === 'pointercancel') await tab(page, 'beta').dispatchEvent('pointercancel');
     else await page.mouse.move(700, 700, { steps: 4 });
