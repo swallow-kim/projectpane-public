@@ -244,6 +244,8 @@ test('desktop pointer drag works with mouse movement and leaves the active tab s
 
 test('desktop pointer escape, cancellation and outside release cannot reorder or activate tabs', async ({ page }) => {
   await setup(page);
+  await expect(tab(page, 'alpha')).toHaveAttribute('data-root-kind', 'windows');
+  await expect(tab(page, 'beta')).toHaveAttribute('data-root-kind', 'windows');
   for (const cancel of ['escape', 'pointercancel', 'outside'] as const) {
     const source = await tab(page, 'beta').boundingBox(), target = await tab(page, 'alpha').boundingBox();
     if (!source || !target) throw new Error('Expected visible tabs');
