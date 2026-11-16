@@ -23,7 +23,7 @@ The extracted NSIS payload matched compiled binaries, allowing only Tauri's exac
 - Vitest: 571 passed. Node/security: 23 passed.
 - Rust library: 383 passed, 21 ignored. Desktop binary: 28 passed, 4 ignored. Explicit signature tests are separate.
 - Typecheck, production build, Rust formatting, strict Clippy and new-commit secret scanning passed. The existing Vite bundle-size warning remains.
-- Browser coverage includes root edits, mapped-drive response and failure handling, stale responses, both languages, insertion positions, pointer and keyboard ordering, external drops, cancellation, persistence, failed acknowledgements and read-only state. Final suite results are recorded below after the completed run.
+- Browser coverage includes root edits, mapped-drive response and failure handling, stale responses, both languages, insertion positions, pointer and keyboard ordering, external drops, cancellation, persistence, failed acknowledgements and read-only state. Final full browser suite: 307/307 passed (including 15 new tests); the pointer-cancellation scenario also passed 20/20 repeated runs.
 - A new concurrent-order Rust test initially had a closure-lifetime compile error; it was corrected before final checks. The initial browser full run passed 306/307; the new pointer-cancellation test reused screen coordinates while the mock watcher failure inserted a status banner above the tabs. Event traces confirmed the pointer hit the banner rather than a tab. The test now awaits that known fixture status before capturing coordinates, without changing the app. Waiting for badge classification alone did not fix this timing issue.
 
 ## Exact packaged native acceptance
